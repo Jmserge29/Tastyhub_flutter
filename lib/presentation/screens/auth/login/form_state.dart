@@ -57,9 +57,20 @@ class _FormStateLoginState extends State<FormStateLogin> {
             prefixIcon: const Icon(Icons.email_outlined),
             validator: _validateEmail,
             textInputAction: TextInputAction.next,
+            labelStyle: TextStyle(
+              color: Colors.white,
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
           ),
+          const SizedBox(height: 12),
           CustomInputFormField(
             labelText: 'Contraseña',
+            labelStyle: TextStyle(
+              color: Colors.white,
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
             hintText: '••••••••',
             controller: _passwordController,
             obscureText: true,
@@ -98,9 +109,7 @@ class _FormStateLoginState extends State<FormStateLogin> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => const PrincipalScreen(),
-                ),
+                MaterialPageRoute(builder: (context) => PrincipalScreen()),
               );
             },
             size: ButtonSize.small,

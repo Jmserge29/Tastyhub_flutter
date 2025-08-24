@@ -140,10 +140,7 @@ class _CustomInputFormFieldState extends State<CustomInputFormField> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(widget.borderRadius),
-              borderSide: BorderSide(
-                color: theme.colorScheme.primary,
-                width: 2.0,
-              ),
+              borderSide: BorderSide(color: Colors.transparent, width: 2.0),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(widget.borderRadius),
