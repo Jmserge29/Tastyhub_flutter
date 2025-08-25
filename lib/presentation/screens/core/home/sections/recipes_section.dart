@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_tastyhub/presentation/screens/core/detail_recipe/detail_recipe.dart';
 import 'package:flutter_tastyhub/presentation/shared/recipe/horizontal_scroll_recipe.dart';
 import 'package:flutter_tastyhub/presentation/shared/recipe/recipe_card.dart';
 
@@ -35,6 +36,10 @@ class _RecipesSectionState extends State<RecipesSection> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Seleccionaste: ${recipe.name}')));
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => DetailRecipeScreen()),
+      );
     }
   }
 

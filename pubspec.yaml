@@ -63,6 +63,7 @@ flutter:
     - assets/images/presentation_image.png
     - assets/images/login_screen.png
     - assets/images/register_screen.png
+    - assets/images/filete.jpg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
