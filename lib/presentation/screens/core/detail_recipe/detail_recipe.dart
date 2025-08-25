@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_tastyhub/presentation/screens/core/profile/user_profile_screen.dart';
+import 'package:flutter_tastyhub/presentation/shared/recipe/recipe_card.dart';
 
 class DetailRecipeScreen extends StatelessWidget {
   const DetailRecipeScreen({super.key});
@@ -10,6 +11,7 @@ class DetailRecipeScreen extends StatelessWidget {
       MaterialPageRoute(
         builder: (context) => UserProfileScreen(
           userProfile: UserProfile(
+            isCurrentUser: true,
             id: 'jose_serge_id',
             name: 'José Serge',
             role: 'Desarrollador Software',
@@ -20,7 +22,43 @@ class DetailRecipeScreen extends StatelessWidget {
             recipesCount: 25,
             followersCount: 100,
             likesCount: 200,
-            userRecipes: [],
+            userRecipes: [
+              Recipe(
+                id: 'filete_carne_res',
+                name: 'Filete Carne de Res',
+                author: 'José Serge',
+                imageUrl:
+                    'https://www2.claro.com.co/portal/recursos/co/cpp/promociones/imagenes/1652370816559-6-comida-colombiana.jpg',
+              ),
+              Recipe(
+                id: 'filete_carne_res',
+                name: 'Filete Carne de Res',
+                author: 'José Serge',
+                imageUrl:
+                    'https://www.labuena.com.co/wp-content/uploads/2020/07/Comidas-especiales-imagen-destacada.jpg',
+              ),
+              Recipe(
+                id: 'filete_carne_res',
+                name: 'Filete Carne de Res',
+                author: 'José Serge',
+                imageUrl:
+                    'https://www.recetasnestle.com.co/sites/default/files/inline-images/comidas-fritas-plato-apanado-ensalada.jpg',
+              ),
+              Recipe(
+                id: 'filete_carne_res',
+                name: 'Filete Carne de Res',
+                author: 'José Serge',
+                imageUrl:
+                    'https://i.pinimg.com/736x/8d/98/09/8d98092817acce47d8a28e93c1deef6f.jpg',
+              ),
+              Recipe(
+                id: 'filete_carne_res',
+                name: 'Filete Carne de Res',
+                author: 'José Serge',
+                imageUrl:
+                    'https://i.pinimg.com/736x/8d/98/09/8d98092817acce47d8a28e93c1deef6f.jpg',
+              ),
+            ],
           ),
           previousRoute: '/detail_recipe',
         ),

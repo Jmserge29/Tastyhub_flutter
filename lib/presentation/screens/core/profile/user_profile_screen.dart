@@ -35,11 +35,11 @@ class UserStatsWidget extends StatelessWidget {
   final int likesCount;
 
   const UserStatsWidget({
-    Key? key,
+    super.key,
     required this.recipesCount,
     required this.followersCount,
     required this.likesCount,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -109,7 +109,7 @@ class _StatItem extends StatelessWidget {
           Text(
             _formatValue(value),
             style: const TextStyle(
-              fontSize: 34,
+              fontSize: 28,
               fontWeight: FontWeight.w900,
               color: Colors.black,
             ),
@@ -117,7 +117,7 @@ class _StatItem extends StatelessWidget {
           Text(
             label,
             style: TextStyle(
-              fontSize: 14,
+              fontSize: 12,
               color: Colors.grey.shade600,
               fontWeight: FontWeight.w500,
             ),
@@ -159,23 +159,25 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          _buildAppBar(),
-          SliverToBoxAdapter(
-            child: Column(
-              children: [
-                _buildProfileHeader(),
-                const SizedBox(height: 24),
-                _buildUserStats(),
-                const SizedBox(height: 32),
-                _buildAboutSection(),
-                const SizedBox(height: 32),
-                _buildRecipesSection(),
-              ],
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        child: CustomScrollView(
+          slivers: [
+            _buildAppBar(),
+            SliverToBoxAdapter(
+              child: Column(
+                children: [
+                  _buildProfileHeader(),
+                  _buildUserStats(),
+                  const SizedBox(height: 32),
+                  _buildAboutSection(),
+                  const SizedBox(height: 32),
+                  _buildRecipesSection(),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
       floatingActionButton: widget.userProfile.isCurrentUser
           ? _buildAddRecipeButton()
@@ -204,10 +206,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
   void _handleBackNavigation() {
     // Navegación inteligente basada en el origen
-    if (widget.previousRoute != null) {
-      Navigator.pushReplacementNamed(context, widget.previousRoute!);
-    } else if (Navigator.canPop(context)) {
+    if (Navigator.canPop(context)) {
       Navigator.pop(context);
+    } else if (widget.previousRoute != null) {
+      Navigator.pushReplacementNamed(context, widget.previousRoute!);
     } else {
       // Si no hay ruta previa, ir al home
       Navigator.pushReplacementNamed(context, '/home');
@@ -308,7 +310,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         children: [
           // Avatar
           CircleAvatar(
-            radius: 50,
+            radius: 36,
             backgroundColor: Colors.grey.shade300,
             backgroundImage: widget.userProfile.avatarUrl.isNotEmpty
                 ? NetworkImage(widget.userProfile.avatarUrl)
@@ -381,37 +383,37 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               height: 1.5,
             ),
           ),
-          if (!widget.userProfile.isCurrentUser) ...[
-            const SizedBox(height: 24),
-            _buildFollowButton(),
-          ],
+          // if (!widget.userProfile.isCurrentUser) ...[
+          //   const SizedBox(height: 24),
+          //   _buildFollowButton(),
+          // ],
         ],
       ),
     );
   }
 
-  Widget _buildFollowButton() {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: _toggleFollow,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: _isFollowing
-              ? Colors.grey.shade300
-              : const Color.fromRGBO(69, 38, 30, 1),
-          foregroundColor: _isFollowing ? Colors.black87 : Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(100),
-          ),
-        ),
-        child: Text(
-          _isFollowing ? 'Siguiendo' : 'Seguir',
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-        ),
-      ),
-    );
-  }
+  // Widget _buildFollowButton() {
+  //   return SizedBox(
+  //     width: double.infinity,
+  //     child: ElevatedButton(
+  //       onPressed: _toggleFollow,
+  //       style: ElevatedButton.styleFrom(
+  //         backgroundColor: _isFollowing
+  //             ? Colors.grey.shade300
+  //             : const Color.fromRGBO(69, 38, 30, 1),
+  //         foregroundColor: _isFollowing ? Colors.black87 : Colors.white,
+  //         padding: const EdgeInsets.symmetric(vertical: 12),
+  //         shape: RoundedRectangleBorder(
+  //           borderRadius: BorderRadius.circular(100),
+  //         ),
+  //       ),
+  //       child: Text(
+  //         _isFollowing ? 'Siguiendo' : 'Seguir',
+  //         style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+  //       ),
+  //     ),
+  //   );
+  // }
 
   Widget _buildRecipesSection() {
     return Container(
@@ -427,7 +429,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               color: Color.fromARGB(255, 108, 108, 108),
             ),
           ),
-          const SizedBox(height: 16),
           _buildRecipesGrid(),
         ],
       ),
@@ -474,8 +475,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         final recipe = widget.userProfile.userRecipes[index];
         return RecipeCard(
           recipe: recipe,
-          width: double.infinity,
-          height: double.infinity,
+          width: 80,
+          height: 100,
           onTap: () => _navigateToRecipeDetail(recipe),
         );
       },
@@ -483,10 +484,15 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   }
 
   Widget _buildAddRecipeButton() {
-    return FloatingActionButton(
-      onPressed: _navigateToAddRecipe,
-      backgroundColor: const Color.fromRGBO(69, 38, 30, 1),
-      child: const Icon(Icons.add, color: Colors.white),
+    return SizedBox(
+      width: 56,
+      height: 56,
+      child: FloatingActionButton(
+        shape: const CircleBorder(),
+        onPressed: () {},
+        backgroundColor: const Color.fromARGB(255, 145, 93, 86),
+        child: const Icon(Icons.add, color: Colors.white),
+      ),
     );
   }
 
