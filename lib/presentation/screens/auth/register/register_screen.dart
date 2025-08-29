@@ -12,18 +12,19 @@ class RegisterScreen extends StatelessWidget {
         fit: StackFit.expand,
         children: [
           // Imagen de fondo
-          Image.asset('assets/images/backgroundregister.png', fit: BoxFit.cover),
-          // Overlay oscuro
-          Container(
-            color: Colors.black.withValues(alpha: 0.7),
+          Image.asset(
+            'assets/images/backgroundregister.png',
+            fit: BoxFit.cover,
           ),
+          // Overlay oscuro
+          Container(color: Colors.black.withValues(alpha: 0.7)),
           Padding(
             padding: EdgeInsets.all(30.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 BrandingHeader(),
-                SizedBox(height: 180),
+                SizedBox(height: 140),
                 Text(
                   "Hola bienvenido!",
                   style: TextStyle(

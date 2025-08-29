@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_tastyhub/presentation/screens/core/politics/politics_screen.dart';
+import 'package:flutter_tastyhub/presentation/screens/get_started/presentation_screen.dart';
 import 'package:flutter_tastyhub/presentation/shared/button_create_recipe.dart';
 import 'package:flutter_tastyhub/presentation/shared/recipe/recipe_card.dart';
 
@@ -191,6 +193,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       elevation: 0,
       pinned: false,
       floating: true,
+      backgroundColor: Colors.transparent,
       leading: IconButton(
         icon: const Icon(Icons.arrow_back, color: Colors.black87),
         onPressed: _handleBackNavigation,
@@ -199,6 +202,12 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         PopupMenuButton<ProfileMenuOption>(
           icon: const Icon(Icons.more_vert, color: Colors.black87),
           onSelected: _handleMenuSelection,
+          offset: const Offset(0, 50), // Posiciona el menú más abajo
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          elevation: 8,
+          color: Colors.white,
           itemBuilder: (context) => _buildMenuItems(),
         ),
       ],
@@ -221,37 +230,28 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     if (widget.userProfile.isCurrentUser) {
       // Menú para el usuario actual
       return [
-        const PopupMenuItem(
-          value: ProfileMenuOption.settings,
-          child: ListTile(
-            leading: Icon(Icons.settings),
-            title: Text('Ajustes'),
-            contentPadding: EdgeInsets.zero,
-          ),
-        ),
-        const PopupMenuItem(
-          value: ProfileMenuOption.editProfile,
-          child: ListTile(
-            leading: Icon(Icons.edit),
-            title: Text('Editar perfil'),
-            contentPadding: EdgeInsets.zero,
-          ),
-        ),
-        const PopupMenuItem(
+        PopupMenuItem(
           value: ProfileMenuOption.privacyAndSecurity,
           child: ListTile(
             leading: Icon(Icons.security),
             title: Text('Políticas y seguridad'),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => PoliticsScreen()),
+            ),
             contentPadding: EdgeInsets.zero,
           ),
         ),
-        const PopupMenuDivider(),
-        const PopupMenuItem(
+        PopupMenuItem(
           value: ProfileMenuOption.logout,
           child: ListTile(
-            leading: Icon(Icons.logout, color: Colors.red),
-            title: Text('Cerrar sesión', style: TextStyle(color: Colors.red)),
+            leading: Icon(Icons.logout),
+            title: Text('Cerrar sesión'),
             contentPadding: EdgeInsets.zero,
+          ),
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => Presentation()),
           ),
         ),
       ];
@@ -270,10 +270,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           value: ProfileMenuOption.block,
           child: ListTile(
             leading: Icon(Icons.block, color: Colors.red),
-            title: Text(
-              'Bloquear usuario',
-              style: TextStyle(color: Colors.red),
-            ),
+            title: Text('Bloquear usuario'),
             contentPadding: EdgeInsets.zero,
           ),
         ),
