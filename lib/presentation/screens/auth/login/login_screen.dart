@@ -13,6 +13,10 @@ class LoginScreen extends StatelessWidget {
         children: [
           // Imagen de fondo
           Image.asset('assets/images/login_screen.png', fit: BoxFit.cover),
+          // Overlay oscuro
+          Container(
+            color: Colors.black.withValues(alpha: 0.5),
+          ),
           Padding(
             padding: EdgeInsets.all(30.0),
             child: Column(
