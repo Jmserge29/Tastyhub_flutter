@@ -1,23 +1,16 @@
 import 'package:flutter/material.dart';
 
-class CustomInputFormField extends StatefulWidget {
+class CustomDropdownField extends StatefulWidget {
   final String? labelText;
   final String? hintText;
-  final String? initialValue;
-  final TextInputType keyboardType;
-  final bool obscureText;
-  final bool enabled;
-  final int? maxLines;
-  final int? maxLength;
-  final Widget? prefixIcon;
-  final Widget? suffixIcon;
+  final String? value;
+  final List<String> items;
+  final ValueChanged<String?>? onChanged;
   final String? Function(String?)? validator;
   final void Function(String?)? onSaved;
-  final void Function(String)? onChanged;
-  final void Function()? onTap;
-  final TextEditingController? controller;
-  final FocusNode? focusNode;
-  final TextInputAction textInputAction;
+  final bool enabled;
+  final Widget? prefixIcon;
+  final Widget? suffixIcon;
   final EdgeInsetsGeometry? contentPadding;
   final Color? fillColor;
   final Color? borderColor;
@@ -26,28 +19,20 @@ class CustomInputFormField extends StatefulWidget {
   final TextStyle? labelStyle;
   final TextStyle? hintStyle;
   final bool filled;
-  final bool readOnly;
   final AutovalidateMode? autovalidateMode;
 
-  const CustomInputFormField({
+  const CustomDropdownField({
     super.key,
     this.labelText,
     this.hintText,
-    this.initialValue,
-    this.keyboardType = TextInputType.text,
-    this.obscureText = false,
-    this.enabled = true,
-    this.maxLines = 1,
-    this.maxLength,
-    this.prefixIcon,
-    this.suffixIcon,
+    this.value,
+    required this.items,
+    this.onChanged,
     this.validator,
     this.onSaved,
-    this.onChanged,
-    this.onTap,
-    this.controller,
-    this.focusNode,
-    this.textInputAction = TextInputAction.next,
+    this.enabled = true,
+    this.prefixIcon,
+    this.suffixIcon,
     this.contentPadding,
     this.fillColor,
     this.borderColor,
@@ -56,32 +41,14 @@ class CustomInputFormField extends StatefulWidget {
     this.labelStyle,
     this.hintStyle,
     this.filled = true,
-    this.readOnly = false,
     this.autovalidateMode,
   });
 
   @override
-  State<CustomInputFormField> createState() => _CustomInputFormFieldState();
+  State<CustomDropdownField> createState() => _CustomDropdownFieldState();
 }
 
-class _CustomInputFormFieldState extends State<CustomInputFormField> {
-  bool _isPasswordVisible = false;
-  late FocusNode _focusNode;
-
-  @override
-  void initState() {
-    super.initState();
-    _focusNode = widget.focusNode ?? FocusNode();
-  }
-
-  @override
-  void dispose() {
-    if (widget.focusNode == null) {
-      _focusNode.dispose();
-    }
-    super.dispose();
-  }
-
+class _CustomDropdownFieldState extends State<CustomDropdownField> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -103,30 +70,37 @@ class _CustomInputFormFieldState extends State<CustomInputFormField> {
             ),
           ),
         ],
-        TextFormField(
-          controller: widget.controller,
-          focusNode: _focusNode,
-          initialValue: widget.controller == null ? widget.initialValue : null,
-          keyboardType: widget.keyboardType,
-          obscureText: widget.obscureText && !_isPasswordVisible,
-          enabled: widget.enabled,
-          readOnly: widget.readOnly,
-          maxLines: widget.maxLines,
-          maxLength: widget.maxLength,
+        DropdownButtonFormField<String>(
+          value: widget.value,
+          items: widget.items.isNotEmpty
+              ? widget.items.map((String item) {
+                  return DropdownMenuItem<String>(
+                    value: item,
+                    child: Text(
+                      item,
+                      style: widget.textStyle ?? theme.textTheme.bodyMedium,
+                    ),
+                  );
+                }).toList()
+              : null,
+          onChanged: widget.enabled ? widget.onChanged : null,
           validator: widget.validator,
           onSaved: widget.onSaved,
-          onChanged: widget.onChanged,
-          onTap: widget.onTap,
-          textInputAction: widget.textInputAction,
           autovalidateMode: widget.autovalidateMode,
-          style: widget.textStyle ?? theme.textTheme.bodyMedium,
+          isExpanded: true, // Esto ayuda con el layout
+          hint: widget.hintText != null
+              ? Text(
+                  widget.hintText!,
+                  style:
+                      widget.hintStyle ??
+                      theme.textTheme.bodyMedium?.copyWith(
+                        color: Colors.black45,
+                      ),
+                )
+              : null,
           decoration: InputDecoration(
-            hintText: widget.hintText,
-            hintStyle:
-                widget.hintStyle ??
-                theme.textTheme.bodyMedium?.copyWith(color: Colors.black45),
             prefixIcon: widget.prefixIcon,
-            suffixIcon: _buildSuffixIcon(),
+            suffixIcon: widget.suffixIcon,
             filled: widget.filled,
             contentPadding:
                 widget.contentPadding ??
@@ -136,11 +110,17 @@ class _CustomInputFormFieldState extends State<CustomInputFormField> {
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(widget.borderRadius),
-              borderSide: BorderSide(color: Colors.transparent, width: 1.0),
+              borderSide: const BorderSide(
+                color: Colors.transparent,
+                width: 1.0,
+              ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(widget.borderRadius),
-              borderSide: BorderSide(color: Colors.transparent, width: 2.0),
+              borderSide: const BorderSide(
+                color: Colors.transparent,
+                width: 2.0,
+              ),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(widget.borderRadius),
@@ -160,22 +140,5 @@ class _CustomInputFormFieldState extends State<CustomInputFormField> {
         ),
       ],
     );
-  }
-
-  Widget? _buildSuffixIcon() {
-    if (widget.obscureText) {
-      return IconButton(
-        icon: Icon(
-          _isPasswordVisible ? Icons.visibility_off : Icons.visibility,
-          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
-        ),
-        onPressed: () {
-          setState(() {
-            _isPasswordVisible = !_isPasswordVisible;
-          });
-        },
-      );
-    }
-    return widget.suffixIcon;
   }
 }
