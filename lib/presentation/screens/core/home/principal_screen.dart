@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_tastyhub/presentation/shared/button_create_recipe.dart';
 import 'package:flutter_tastyhub/presentation/shared/user_information.dart';
 import 'package:flutter_tastyhub/presentation/shared/recipe/recipe_card.dart';
 import 'package:flutter_tastyhub/presentation/shared/category/category_item.dart';
@@ -106,16 +107,7 @@ class PrincipalScreen extends StatelessWidget {
           ],
         ),
       ),
-      floatingActionButton: SizedBox(
-        width: 56,
-        height: 56,
-        child: FloatingActionButton(
-          shape: const CircleBorder(),
-          onPressed: () {},
-          backgroundColor: const Color.fromARGB(255, 145, 93, 86),
-          child: const Icon(Icons.add, color: Colors.white),
-        ),
-      ),
+      floatingActionButton: const ButtonCreateRecipe(),
     );
   }
 }

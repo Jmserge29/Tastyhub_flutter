@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_tastyhub/presentation/shared/button_create_recipe.dart';
 import 'package:flutter_tastyhub/presentation/shared/recipe/recipe_card.dart';
 
 /// Modelo de datos para el usuario
@@ -180,7 +181,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         ),
       ),
       floatingActionButton: widget.userProfile.isCurrentUser
-          ? _buildAddRecipeButton()
+          ? const ButtonCreateRecipe()
           : null,
     );
   }
@@ -480,19 +481,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           onTap: () => _navigateToRecipeDetail(recipe),
         );
       },
-    );
-  }
-
-  Widget _buildAddRecipeButton() {
-    return SizedBox(
-      width: 56,
-      height: 56,
-      child: FloatingActionButton(
-        shape: const CircleBorder(),
-        onPressed: () {},
-        backgroundColor: const Color.fromARGB(255, 145, 93, 86),
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
     );
   }
 
