@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_tastyhub/domain/entities/receipe.dart';
 import 'package:flutter_tastyhub/presentation/screens/core/politics/politics_screen.dart';
 import 'package:flutter_tastyhub/presentation/screens/get_started/presentation_screen.dart';
-import 'package:flutter_tastyhub/presentation/shared/button_create_recipe.dart';
-import 'package:flutter_tastyhub/presentation/shared/recipe/recipe_card.dart';
+import 'package:flutter_tastyhub/presentation/widgets/button_create_recipe.dart';
+import 'package:flutter_tastyhub/presentation/widgets/recipe/recipe_card.dart';
 
 /// Modelo de datos para el usuario
 class UserProfile {

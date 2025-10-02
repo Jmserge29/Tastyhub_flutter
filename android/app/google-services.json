@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "535819918117",
+    "project_id": "tastyhub-3f86e",
+    "storage_bucket": "tastyhub-3f86e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:535819918117:android:ec27ee320bd289dc4058cc",
+        "android_client_info": {
+          "package_name": "com.example.flutter_tastyhub"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBsRpz1lEeT94-DEfchwFNcXz76K6PD6wE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

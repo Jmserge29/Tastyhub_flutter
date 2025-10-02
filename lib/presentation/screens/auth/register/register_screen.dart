@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_tastyhub/presentation/screens/auth/register/form_state_register.dart';
-import 'package:flutter_tastyhub/presentation/shared/brand_header.dart';
+import 'package:flutter_tastyhub/presentation/widgets/brand_header.dart';
 
 class RegisterScreen extends StatelessWidget {
   const RegisterScreen({super.key});

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_tastyhub/presentation/screens/auth/login/login_screen.dart';
-import 'package:flutter_tastyhub/presentation/shared/brand_header.dart';
-import 'package:flutter_tastyhub/presentation/shared/custom_button.dart';
-import 'package:flutter_tastyhub/presentation/shared/shadow_position.dart';
+import 'package:flutter_tastyhub/presentation/widgets/brand_header.dart';
+import 'package:flutter_tastyhub/presentation/widgets/custom_button.dart';
+import 'package:flutter_tastyhub/presentation/widgets/shadow_position.dart';
 
 class Presentation extends StatelessWidget {
   const Presentation({super.key});

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_tastyhub/presentation/shared/category/category_item.dart';
+import 'package:flutter_tastyhub/presentation/widgets/category/category_item.dart';
 
 class CategoriesSection extends StatelessWidget {
   final List<CategoryModel> categories;

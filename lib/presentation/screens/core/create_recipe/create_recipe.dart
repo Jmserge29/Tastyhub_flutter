@@ -1,23 +1,26 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_tastyhub/presentation/shared/custom_button.dart';
-import 'package:flutter_tastyhub/presentation/shared/form/custom_dropdown_form_field.dart';
-import 'package:flutter_tastyhub/presentation/shared/form/custom_input_form_field.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_tastyhub/config/providers/providers.dart';
+import 'package:flutter_tastyhub/presentation/widgets/custom_button.dart';
+import 'package:flutter_tastyhub/presentation/widgets/form/custom_dropdown_form_field.dart';
+import 'package:flutter_tastyhub/presentation/widgets/form/custom_input_form_field.dart';
 
-class CreateRecipeScreen extends StatefulWidget {
+class CreateRecipeScreen extends ConsumerStatefulWidget {
   const CreateRecipeScreen({Key? key}) : super(key: key);
 
   @override
-  State<CreateRecipeScreen> createState() => _CreateRecipeScreenState();
+  ConsumerState<CreateRecipeScreen> createState() => _CreateRecipeScreenState();
 }
 
-class _CreateRecipeScreenState extends State<CreateRecipeScreen> {
+class _CreateRecipeScreenState extends ConsumerState<CreateRecipeScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
+  final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
-  final _timeController = TextEditingController();
+  final _prepTimeController = TextEditingController();
 
   String? _selectedCategory;
   List<String> _selectedIngredients = [];
+  bool _isLoading = false;
 
   final List<String> _categories = [
     'Mexicana',
@@ -55,9 +58,9 @@ class _CreateRecipeScreenState extends State<CreateRecipeScreen> {
 
   @override
   void dispose() {
-    _nameController.dispose();
+    _titleController.dispose();
     _descriptionController.dispose();
-    _timeController.dispose();
+    _prepTimeController.dispose();
     super.dispose();
   }
 
@@ -135,30 +138,32 @@ class _CreateRecipeScreenState extends State<CreateRecipeScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const SizedBox(height: 8),
+
+                        // Título de la receta
                         CustomInputFormField(
-                          labelText: 'Nombre',
+                          controller: _titleController,
+                          labelText: 'Título',
                           hintText: 'Costillas de cerdo ahumada...',
                           borderColor: Colors.transparent,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'Por favor ingresa el nombre de la receta';
+                              return 'Por favor ingresa el título de la receta';
                             }
                             return null;
                           },
-                          onChanged: (value) {
-                            // Lógica de búsqueda
-                          },
+                          onChanged: (value) {},
                         ),
                         const SizedBox(height: 10),
+
+                        // Descripción
                         CustomInputFormField(
+                          controller: _descriptionController,
                           labelText: 'Descripción',
                           keyboardType: TextInputType.multiline,
                           maxLines: 3,
-                          hintText: 'Costillas de cerdo ahumada...',
+                          hintText: 'Una deliciosa receta de...',
                           borderColor: Colors.transparent,
-                          onChanged: (value) {
-                            // Lógica de búsqueda
-                          },
+                          onChanged: (value) {},
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'Por favor ingresa una descripción';
@@ -167,6 +172,8 @@ class _CreateRecipeScreenState extends State<CreateRecipeScreen> {
                           },
                         ),
                         const SizedBox(height: 10),
+
+                        // Categoría
                         CustomDropdownField(
                           hintText: 'Selecciona una categoría',
                           labelText: 'Categoría',
@@ -186,29 +193,36 @@ class _CreateRecipeScreenState extends State<CreateRecipeScreen> {
                           },
                         ),
                         const SizedBox(height: 10),
+
+                        // Tiempo de preparación
                         CustomInputFormField(
-                          labelText: 'Tiempo',
-                          hintText: '30 minutos',
+                          controller: _prepTimeController,
+                          labelText: 'Tiempo de preparación (minutos)',
+                          hintText: '30',
                           borderColor: Colors.transparent,
                           prefixIcon: const Icon(Icons.timelapse),
+                          keyboardType: TextInputType.number,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'Por favor ingresa el tiempo de preparación';
                             }
+                            if (int.tryParse(value) == null) {
+                              return 'Ingresa un número válido';
+                            }
                             return null;
                           },
-                          onChanged: (value) {
-                            // Lógica de búsqueda
-                          },
+                          onChanged: (value) {},
                         ),
                         const SizedBox(height: 10),
+
+                        // Ingredientes
                         CustomDropdownField(
                           hintText: 'Seleccione los ingredientes',
                           labelText: 'Ingredientes',
                           items: _availableIngredients,
                           validator: (value) {
-                            if (value == null) {
-                              return 'Campo requerido';
+                            if (_selectedIngredients.isEmpty) {
+                              return 'Selecciona al menos un ingrediente';
                             }
                             return null;
                           },
@@ -222,6 +236,8 @@ class _CreateRecipeScreenState extends State<CreateRecipeScreen> {
                           },
                         ),
                         const SizedBox(height: 10),
+
+                        // Chips de ingredientes seleccionados
                         if (_selectedIngredients.isNotEmpty)
                           Wrap(
                             spacing: 8,
@@ -267,14 +283,23 @@ class _CreateRecipeScreenState extends State<CreateRecipeScreen> {
                               );
                             }).toList(),
                           ),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 20),
+
+                        // Botón de crear
                         Center(
-                          child: CustomButton(
-                            text: 'Crear receta',
-                            onPressed: _createRecipe,
-                            backgroundColor: Color.fromRGBO(82, 34, 34, 1),
-                            size: ButtonSize.small,
-                          ),
+                          child: _isLoading
+                              ? const CircularProgressIndicator()
+                              : CustomButton(
+                                  text: 'Crear receta',
+                                  onPressed: _createRecipe,
+                                  backgroundColor: const Color.fromRGBO(
+                                    82,
+                                    34,
+                                    34,
+                                    1,
+                                  ),
+                                  size: ButtonSize.small,
+                                ),
                         ),
                       ],
                     ),
@@ -288,31 +313,81 @@ class _CreateRecipeScreenState extends State<CreateRecipeScreen> {
     );
   }
 
-  void _createRecipe() {
-    if (_formKey.currentState!.validate()) {
-      if (_selectedIngredients.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Por favor selecciona al menos un ingrediente'),
-          ),
-        );
-        return;
-      }
+  Future<void> _createRecipe() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
 
+    if (_selectedIngredients.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Receta creada exitosamente')),
+        const SnackBar(
+          content: Text('Por favor selecciona al menos un ingrediente'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      // Obtener el UseCase desde Riverpod
+      final createRecipeUseCase = ref.read(createRecipeUseCaseProvider);
+
+      // Crear la receta en Firebase
+      final recipeId = await createRecipeUseCase.call(
+        title: _titleController.text.trim(),
+        description: _descriptionController.text.trim(),
+        ingredients: _selectedIngredients,
+        prepTime: int.parse(_prepTimeController.text.trim()),
+        categoryId:
+            _selectedCategory!, // Por ahora usamos el nombre, luego puedes usar IDs reales
+        userId: 'default-user', // TODO: Obtener del usuario autenticado
       );
 
-      // Limpiar formulario
-      _nameController.clear();
-      _descriptionController.clear();
-      _timeController.clear();
-      setState(() {
-        _selectedCategory = null;
-        _selectedIngredients.clear();
-      });
-      // Opcional: regresar a la pantalla anterior
-      // Navigator.pop(context);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('✅ ¡Receta creada exitosamente!'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
+          ),
+        );
+
+        // Limpiar formulario
+        _titleController.clear();
+        _descriptionController.clear();
+        _prepTimeController.clear();
+
+        setState(() {
+          _selectedCategory = null;
+          _selectedIngredients.clear();
+        });
+
+        // Regresar a la pantalla anterior después de 1 segundo
+        await Future.delayed(const Duration(seconds: 1));
+        if (mounted) {
+          Navigator.pop(context);
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ Error al crear receta: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_tastyhub/domain/entities/receipe.dart';
 import 'package:flutter_tastyhub/presentation/screens/core/profile/user_profile_screen.dart';
-import 'package:flutter_tastyhub/presentation/shared/recipe/recipe_card.dart';
 
 class DetailRecipeScreen extends StatelessWidget {
   const DetailRecipeScreen({super.key});
@@ -25,36 +25,43 @@ class DetailRecipeScreen extends StatelessWidget {
             userRecipes: [
               Recipe(
                 id: 'filete_carne_res',
-                name: 'Filete Carne de Res',
-                author: 'José Serge',
+                title: 'Filete Carne de Res',
+                categoryId: '1',
+                createdAt: DateTime(2023, 1, 1),
+                description: 'Delicious beef steak recipe',
+                ingredients: [
+                  'Carne de res',
+                  'Pimienta',
+                  'Hierba',
+                  'Mantequilla',
+                  'Beef stock',
+                  'Olive Oil',
+                  'Garlic de ajo',
+                  'Onion mix',
+                ],
+                prepTime: 45,
+                userId: 'jose_serge_id',
                 imageUrl:
                     'https://www2.claro.com.co/portal/recursos/co/cpp/promociones/imagenes/1652370816559-6-comida-colombiana.jpg',
               ),
               Recipe(
                 id: 'filete_carne_res',
-                name: 'Filete Carne de Res',
-                author: 'José Serge',
-                imageUrl:
-                    'https://www.labuena.com.co/wp-content/uploads/2020/07/Comidas-especiales-imagen-destacada.jpg',
-              ),
-              Recipe(
-                id: 'filete_carne_res',
-                name: 'Filete Carne de Res',
-                author: 'José Serge',
-                imageUrl:
-                    'https://www.recetasnestle.com.co/sites/default/files/inline-images/comidas-fritas-plato-apanado-ensalada.jpg',
-              ),
-              Recipe(
-                id: 'filete_carne_res',
-                name: 'Filete Carne de Res',
-                author: 'José Serge',
-                imageUrl:
-                    'https://i.pinimg.com/736x/8d/98/09/8d98092817acce47d8a28e93c1deef6f.jpg',
-              ),
-              Recipe(
-                id: 'filete_carne_res',
-                name: 'Filete Carne de Res',
-                author: 'José Serge',
+                title: 'Filete Carne de Res',
+                categoryId: '1',
+                createdAt: DateTime(2023, 1, 1),
+                description: 'Delicious beef steak recipe',
+                ingredients: [
+                  'Carne de res',
+                  'Pimienta',
+                  'Hierba',
+                  'Mantequilla',
+                  'Beef stock',
+                  'Olive Oil',
+                  'Garlic de ajo',
+                  'Onion mix',
+                ],
+                prepTime: 45,
+                userId: 'jose_serge_id',
                 imageUrl:
                     'https://i.pinimg.com/736x/8d/98/09/8d98092817acce47d8a28e93c1deef6f.jpg',
               ),

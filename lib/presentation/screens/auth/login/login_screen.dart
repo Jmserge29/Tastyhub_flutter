@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_tastyhub/presentation/screens/auth/login/form_state.dart';
-import 'package:flutter_tastyhub/presentation/shared/brand_header.dart';
+import 'package:flutter_tastyhub/presentation/widgets/brand_header.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -14,9 +14,7 @@ class LoginScreen extends StatelessWidget {
           // Imagen de fondo
           Image.asset('assets/images/login_screen.png', fit: BoxFit.cover),
           // Overlay oscuro
-          Container(
-            color: Colors.black.withValues(alpha: 0.5),
-          ),
+          Container(color: Colors.black.withValues(alpha: 0.5)),
           Padding(
             padding: EdgeInsets.all(30.0),
             child: Column(
