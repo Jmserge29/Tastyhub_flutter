@@ -1,49 +1,50 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_tastyhub/domain/entities/receipe.dart';
 
-/// Modelo de datos para una receta
-class Recipe {
-  final String id;
-  final String name;
-  final String author;
-  final String imageUrl;
-  final bool isFavorite;
-  final double? rating;
-  final int? cookingTime; // en minutos
-  final String? difficulty;
+// Modelo de datos para una receta
+// class Recipe {
+//   final String id;
+//   final String name;
+//   final String author;
+//   final String imageUrl;
+//   final bool isFavorite;
+//   final double? rating;
+//   final int? cookingTime; // en minutos
+//   final String? difficulty;
 
-  const Recipe({
-    required this.id,
-    required this.name,
-    required this.author,
-    required this.imageUrl,
-    this.isFavorite = false,
-    this.rating,
-    this.cookingTime,
-    this.difficulty,
-  });
+//   const Recipe({
+//     required this.id,
+//     required this.name,
+//     required this.author,
+//     required this.imageUrl,
+//     this.isFavorite = false,
+//     this.rating,
+//     this.cookingTime,
+//     this.difficulty,
+//   });
 
-  Recipe copyWith({
-    String? id,
-    String? name,
-    String? author,
-    String? imageUrl,
-    bool? isFavorite,
-    double? rating,
-    int? cookingTime,
-    String? difficulty,
-  }) {
-    return Recipe(
-      id: id ?? this.id,
-      name: name ?? this.name,
-      author: author ?? this.author,
-      imageUrl: imageUrl ?? this.imageUrl,
-      isFavorite: isFavorite ?? this.isFavorite,
-      rating: rating ?? this.rating,
-      cookingTime: cookingTime ?? this.cookingTime,
-      difficulty: difficulty ?? this.difficulty,
-    );
-  }
-}
+//   Recipe copyWith({
+//     String? id,
+//     String? name,
+//     String? author,
+//     String? imageUrl,
+//     bool? isFavorite,
+//     double? rating,
+//     int? cookingTime,
+//     String? difficulty,
+//   }) {
+//     return Recipe(
+//       id: id ?? this.id,
+//       name: name ?? this.name,
+//       author: author ?? this.author,
+//       imageUrl: imageUrl ?? this.imageUrl,
+//       isFavorite: isFavorite ?? this.isFavorite,
+//       rating: rating ?? this.rating,
+//       cookingTime: cookingTime ?? this.cookingTime,
+//       difficulty: difficulty ?? this.difficulty,
+//     );
+//   }
+// }
 
 /// Widget personalizado para cada tarjeta de receta
 class RecipeCard extends StatefulWidget {
@@ -77,7 +78,7 @@ class _RecipeCardState extends State<RecipeCard>
   @override
   void initState() {
     super.initState();
-    _isFavorite = widget.recipe.isFavorite;
+    // _isFavorite = widget.recipe.isFavorite;
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 150),
       vsync: this,
@@ -157,12 +158,12 @@ class _RecipeCardState extends State<RecipeCard>
                       // Información de la receta
                       _buildRecipeInfo(),
 
-                      // Rating badge (si existe)
-                      if (widget.recipe.rating != null) _buildRatingBadge(),
+                      // // Rating badge (si existe)
+                      // if (widget.recipe.rating != null) _buildRatingBadge(),
 
                       // Cooking time badge (si existe)
-                      if (widget.recipe.cookingTime != null)
-                        _buildCookingTimeBadge(),
+                      // if (widget.recipe.cookingTime != null)
+                      //   _buildCookingTimeBadge(),
                     ],
                   ),
                 ),
@@ -253,7 +254,7 @@ class _RecipeCardState extends State<RecipeCard>
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            widget.recipe.name.toUpperCase(),
+            widget.recipe.title.toUpperCase(),
             style: const TextStyle(
               color: Colors.white,
               fontSize: 12,
@@ -265,7 +266,7 @@ class _RecipeCardState extends State<RecipeCard>
           ),
           const SizedBox(height: 4),
           Text(
-            'By: ${widget.recipe.author}',
+            'By: ${widget.recipe.title}',
             style: TextStyle(
               color: Colors.white.withOpacity(0.9),
               fontSize: 14,
@@ -295,7 +296,7 @@ class _RecipeCardState extends State<RecipeCard>
             const Icon(Icons.star, color: Colors.white, size: 14),
             const SizedBox(width: 2),
             Text(
-              widget.recipe.rating!.toStringAsFixed(1),
+              '12.3', //widget.recipe.rating!.toStringAsFixed(1),
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 12,
@@ -324,7 +325,7 @@ class _RecipeCardState extends State<RecipeCard>
             const Icon(Icons.access_time, color: Colors.white, size: 12),
             const SizedBox(width: 2),
             Text(
-              '${widget.recipe.cookingTime}m',
+              '${widget.recipe.prepTime}m',
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 11,

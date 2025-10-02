@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_tastyhub/presentation/shared/recipe/recipe_card.dart';
+import 'package:flutter_tastyhub/domain/entities/receipe.dart';
+import 'package:flutter_tastyhub/presentation/widgets/recipe/recipe_card.dart';
 
 /// Widget para scroll horizontal de recetas
 class HorizontalRecipesList extends StatelessWidget {
@@ -50,9 +51,6 @@ class HorizontalRecipesList extends StatelessWidget {
                 width: itemWidth,
                 height: itemHeight,
                 onTap: () => onRecipeTap?.call(recipe),
-                onFavoriteToggle: (isFavorite) => onFavoriteToggle?.call(
-                  recipe.copyWith(isFavorite: isFavorite),
-                ),
               );
             },
           ),

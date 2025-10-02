@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_tastyhub/domain/entities/receipe.dart';
 import 'package:flutter_tastyhub/presentation/screens/core/detail_recipe/detail_recipe.dart';
-import 'package:flutter_tastyhub/presentation/shared/recipe/horizontal_scroll_recipe.dart';
-import 'package:flutter_tastyhub/presentation/shared/recipe/recipe_card.dart';
+import 'package:flutter_tastyhub/presentation/widgets/recipe/horizontal_scroll_recipe.dart';
 
 class RecipesSection extends StatefulWidget {
   const RecipesSection({
@@ -35,7 +35,7 @@ class _RecipesSectionState extends State<RecipesSection> {
     } else {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Seleccionaste: ${recipe.name}')));
+      ).showSnackBar(SnackBar(content: Text('Seleccionaste: ${recipe.title}')));
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => DetailRecipeScreen()),
@@ -51,9 +51,9 @@ class _RecipesSectionState extends State<RecipesSection> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            recipe.isFavorite
-                ? '❤️ Agregaste ${recipe.name} a favoritos'
-                : '💔 Eliminaste ${recipe.name} de favoritos',
+            true
+                ? '❤️ Agregaste ${recipe.title} a favoritos'
+                : '💔 Eliminaste ${recipe.title} de favoritos',
           ),
         ),
       );

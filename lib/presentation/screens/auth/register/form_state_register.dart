@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_tastyhub/presentation/screens/auth/login/login_screen.dart';
 import 'package:flutter_tastyhub/presentation/screens/core/home/principal_screen.dart';
-import 'package:flutter_tastyhub/presentation/shared/custom_button.dart';
-import 'package:flutter_tastyhub/presentation/shared/form/custom_input_form_field.dart';
+import 'package:flutter_tastyhub/presentation/widgets/custom_button.dart';
+import 'package:flutter_tastyhub/presentation/widgets/form/custom_input_form_field.dart';
 
 class FormStateRegister extends StatefulWidget {
   const FormStateRegister({super.key});
@@ -53,8 +53,6 @@ class _FormStateRegisterState extends State<FormStateRegister> {
     }
     return null;
   }
-
-
 
   @override
   Widget build(BuildContext context) {

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_tastyhub/presentation/screens/auth/register/register_screen.dart';
 import 'package:flutter_tastyhub/presentation/screens/core/home/principal_screen.dart';
-import 'package:flutter_tastyhub/presentation/shared/custom_button.dart';
-import 'package:flutter_tastyhub/presentation/shared/form/custom_input_form_field.dart';
+import 'package:flutter_tastyhub/presentation/widgets/custom_button.dart';
+import 'package:flutter_tastyhub/presentation/widgets/form/custom_input_form_field.dart';
 
 class FormStateLogin extends StatefulWidget {
   const FormStateLogin({super.key});

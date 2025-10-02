@@ -1,57 +1,31 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_tastyhub/presentation/shared/button_create_recipe.dart';
-import 'package:flutter_tastyhub/presentation/shared/user_information.dart';
-import 'package:flutter_tastyhub/presentation/shared/recipe/recipe_card.dart';
-import 'package:flutter_tastyhub/presentation/shared/category/category_item.dart';
-import 'package:flutter_tastyhub/presentation/shared/form/custom_input_form_field.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_tastyhub/config/providers/providers.dart';
+import 'package:flutter_tastyhub/presentation/widgets/button_create_recipe.dart';
+import 'package:flutter_tastyhub/presentation/widgets/user_information.dart';
+import 'package:flutter_tastyhub/presentation/widgets/category/category_item.dart';
+import 'package:flutter_tastyhub/presentation/widgets/form/custom_input_form_field.dart';
 import 'package:flutter_tastyhub/presentation/screens/core/home/sections/recipes_section.dart';
 import 'package:flutter_tastyhub/presentation/screens/core/home/sections/categories_section.dart';
 
-class PrincipalScreen extends StatelessWidget {
+class PrincipalScreen extends ConsumerWidget {
   PrincipalScreen({super.key});
 
-  final List<Recipe> recentRecipes = [
-    Recipe(
-      id: '1',
-      name: 'Spaghetti Carbonara',
-      author: 'Chef Mario',
-      imageUrl:
-          'https://www.elespectador.com/resizer/v2/DNKJ2AFQ4VBBVIEQ5ICCXCXO34.jpg?auth=f3bb96795db65e379eaea4de12a38d5df8017da3f5d9518738aa87e502c68dc5&width=920&height=613&smart=true&quality=60',
-    ),
-    Recipe(
-      id: '2',
-      name: 'Pizza Margherita',
-      author: 'Chef Giuseppe',
-      imageUrl:
-          'https://www.supermaxi.com/wp-content/uploads/2024/07/shutterstock_2476903001-1024x683.jpg.webp',
-    ),
-    Recipe(
-      id: '3',
-      name: 'Tiramisu',
-      author: 'Chef Luigi',
-      imageUrl:
-          'https://www.recetasnestle.com.ec/sites/default/files/styles/recipe_detail_desktop_new/public/srh_recipes/7f45d6f8807ebc775928651a3398dce9.png?itok=Xgr1MAc_',
-    ),
-    Recipe(
-      id: '4',
-      name: 'Panna Cotta',
-      author: 'Chef Marco',
-      imageUrl:
-          'https://static01.nyt.com/images/2023/08/10/multimedia/LH-Panna-Cotta-wczm/LH-Panna-Cotta-wczm-mediumSquareAt3X.jpg',
-    ),
-  ];
-
+  // Mantener solo las categorías quemadas (mientras no tengas categorías en Firebase)
   final List<CategoryModel> recommendedCategories = [
     CategoryModel(id: '1', name: 'Italian', icon: Icons.local_pizza),
     CategoryModel(id: '2', name: 'Chinese', icon: Icons.rice_bowl),
     CategoryModel(id: '3', name: 'Mexican', icon: Icons.local_activity),
-    CategoryModel(id: '1', name: 'Italian', icon: Icons.local_pizza),
-    CategoryModel(id: '2', name: 'Chinese', icon: Icons.rice_bowl),
-    CategoryModel(id: '3', name: 'Mexican', icon: Icons.local_activity),
+    CategoryModel(id: '4', name: 'Desserts', icon: Icons.cake),
+    CategoryModel(id: '5', name: 'Healthy', icon: Icons.eco),
+    CategoryModel(id: '6', name: 'Fast Food', icon: Icons.fastfood),
   ];
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // 🔥 AQUÍ TRAEMOS LAS RECETAS REALES DE FIREBASE
+    final recipesAsync = ref.watch(recipesStreamProvider);
+
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.fromLTRB(26, 16, 26, 0),
@@ -80,25 +54,135 @@ class PrincipalScreen extends StatelessWidget {
                       borderColor: Colors.transparent,
                       prefixIcon: const Icon(Icons.search),
                       onChanged: (value) {
-                        // Lógica de búsqueda
+                        // TODO: Implementar búsqueda con Firebase
+                        // ref.read(searchQueryProvider.notifier).state = value;
                       },
                     ),
                     const SizedBox(height: 20),
+
+                    // Categorías (mantener quemadas por ahora)
                     CategoriesSection(categories: recommendedCategories),
+
                     const SizedBox(height: 4),
-                    RecipesSection(
-                      title: 'Recetas recientes',
-                      recipes: recentRecipes,
-                    ),
-                    const SizedBox(height: 4),
-                    RecipesSection(
-                      title: 'Recetas recomendadas',
-                      recipes: [recentRecipes[0]],
-                    ),
-                    const SizedBox(height: 4),
-                    RecipesSection(
-                      title: 'Recetas populares',
-                      recipes: [...recentRecipes, recentRecipes[1]],
+
+                    // 🔥 RECETAS DESDE FIREBASE
+                    recipesAsync.when(
+                      data: (recipes) {
+                        if (recipes.isEmpty) {
+                          return const Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(40.0),
+                              child: Column(
+                                children: [
+                                  Icon(
+                                    Icons.restaurant,
+                                    size: 64,
+                                    color: Colors.grey,
+                                  ),
+                                  SizedBox(height: 16),
+                                  Text(
+                                    'No hay recetas aún',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Text('¡Crea la primera receta!'),
+                                ],
+                              ),
+                            ),
+                          );
+                        }
+
+                        return Column(
+                          children: [
+                            // Recetas recientes (todas las recetas)
+                            RecipesSection(
+                              title: 'Recetas recientes',
+                              recipes: recipes,
+                            ),
+
+                            const SizedBox(height: 4),
+
+                            // Recetas recomendadas (solo las que tienen rating > 4.0)
+                            if (recipes
+                                .where((r) => r.prepTime > 4.0)
+                                .isNotEmpty)
+                              RecipesSection(
+                                title: 'Recetas recomendadas',
+                                recipes: recipes
+                                    .where((r) => r.prepTime > 4.0)
+                                    .toList(),
+                              ),
+
+                            const SizedBox(height: 4),
+
+                            // Recetas populares (las que son favoritas)
+                            RecipesSection(
+                              title: 'Recetas populares',
+                              recipes: recipes.toList(),
+                            ),
+
+                            const SizedBox(height: 4),
+
+                            // Recetas rápidas (menos de 30 minutos)
+                            if (recipes
+                                .where((r) => r.prepTime < 30)
+                                .isNotEmpty)
+                              RecipesSection(
+                                title: 'Recetas rápidas',
+                                recipes: recipes
+                                    .where((r) => r.prepTime < 30)
+                                    .toList(),
+                              ),
+                          ],
+                        );
+                      },
+
+                      loading: () => const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(40.0),
+                          child: Column(
+                            children: [
+                              CircularProgressIndicator(),
+                              SizedBox(height: 16),
+                              Text('Cargando recetas...'),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      error: (error, stack) => Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(40.0),
+                          child: Column(
+                            children: [
+                              const Icon(
+                                Icons.error,
+                                size: 64,
+                                color: Colors.red,
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'Error al cargar recetas',
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text('$error'),
+                              const SizedBox(height: 16),
+                              ElevatedButton(
+                                onPressed: () {
+                                  // Refrescar datos
+                                  ref.invalidate(recipesStreamProvider);
+                                },
+                                child: const Text('Reintentar'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
                   ],
                 ),
