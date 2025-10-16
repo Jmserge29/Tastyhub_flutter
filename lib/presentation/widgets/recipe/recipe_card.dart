@@ -1,56 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_tastyhub/config/providers/providers.dart';
 import 'package:flutter_tastyhub/domain/entities/receipe.dart';
 
-// Modelo de datos para una receta
-// class Recipe {
-//   final String id;
-//   final String name;
-//   final String author;
-//   final String imageUrl;
-//   final bool isFavorite;
-//   final double? rating;
-//   final int? cookingTime; // en minutos
-//   final String? difficulty;
-
-//   const Recipe({
-//     required this.id,
-//     required this.name,
-//     required this.author,
-//     required this.imageUrl,
-//     this.isFavorite = false,
-//     this.rating,
-//     this.cookingTime,
-//     this.difficulty,
-//   });
-
-//   Recipe copyWith({
-//     String? id,
-//     String? name,
-//     String? author,
-//     String? imageUrl,
-//     bool? isFavorite,
-//     double? rating,
-//     int? cookingTime,
-//     String? difficulty,
-//   }) {
-//     return Recipe(
-//       id: id ?? this.id,
-//       name: name ?? this.name,
-//       author: author ?? this.author,
-//       imageUrl: imageUrl ?? this.imageUrl,
-//       isFavorite: isFavorite ?? this.isFavorite,
-//       rating: rating ?? this.rating,
-//       cookingTime: cookingTime ?? this.cookingTime,
-//       difficulty: difficulty ?? this.difficulty,
-//     );
-//   }
-// }
-
-/// Widget personalizado para cada tarjeta de receta
-class RecipeCard extends StatefulWidget {
+class RecipeCard extends ConsumerStatefulWidget {
   final Recipe recipe;
   final VoidCallback? onTap;
-  final ValueChanged<bool>? onFavoriteToggle;
   final double width;
   final double height;
   final BorderRadius? borderRadius;
@@ -59,26 +14,24 @@ class RecipeCard extends StatefulWidget {
     super.key,
     required this.recipe,
     this.onTap,
-    this.onFavoriteToggle,
     this.width = 200,
     this.height = 280,
     this.borderRadius,
   });
 
   @override
-  State<RecipeCard> createState() => _RecipeCardState();
+  ConsumerState<RecipeCard> createState() => _RecipeCardState();
 }
 
-class _RecipeCardState extends State<RecipeCard>
+class _RecipeCardState extends ConsumerState<RecipeCard>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
-  bool _isFavorite = false;
+  bool _isProcessingLike = false;
 
   @override
   void initState() {
     super.initState();
-    // _isFavorite = widget.recipe.isFavorite;
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 150),
       vsync: this,
@@ -106,15 +59,48 @@ class _RecipeCardState extends State<RecipeCard>
     _animationController.reverse();
   }
 
-  void _toggleFavorite() {
-    setState(() {
-      _isFavorite = !_isFavorite;
-    });
-    widget.onFavoriteToggle?.call(_isFavorite);
+  Future<void> _toggleLike() async {
+    if (_isProcessingLike) return;
+
+    setState(() => _isProcessingLike = true);
+
+    try {
+      final currentUser = await ref.read(getCurrentUserUseCaseProvider).call();
+      if (currentUser == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Debes iniciar sesión para dar like'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+        return;
+      }
+      await ref
+          .read(toggleLikeUseCaseProvider)
+          .call(widget.recipe.id, currentUser.id);
+
+      // Refrescar lista de recetas
+      ref.invalidate(recipesStreamProvider);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isProcessingLike = false);
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Obtener usuario actual para verificar si ya le dio like
+    final currentUserAsync = ref.watch(currentUserProvider);
+
     return AnimatedBuilder(
       animation: _scaleAnimation,
       builder: (context, child) {
@@ -146,24 +132,15 @@ class _RecipeCardState extends State<RecipeCard>
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
-                      // Imagen de fondo
                       _buildBackgroundImage(),
-
-                      // Overlay gradient
                       _buildGradientOverlay(),
-
-                      // Botón de favorito
-                      _buildFavoriteButton(),
-
-                      // Información de la receta
+                      currentUserAsync.when(
+                        data: (currentUser) =>
+                            _buildLikeButton(currentUser?.id),
+                        loading: () => const SizedBox.shrink(),
+                        error: (_, __) => const SizedBox.shrink(),
+                      ),
                       _buildRecipeInfo(),
-
-                      // // Rating badge (si existe)
-                      // if (widget.recipe.rating != null) _buildRatingBadge(),
-
-                      // Cooking time badge (si existe)
-                      // if (widget.recipe.cookingTime != null)
-                      //   _buildCookingTimeBadge(),
                     ],
                   ),
                 ),
@@ -222,23 +199,35 @@ class _RecipeCardState extends State<RecipeCard>
     );
   }
 
-  Widget _buildFavoriteButton() {
+  Widget _buildLikeButton(String? currentUserId) {
+    final isLiked =
+        currentUserId != null && widget.recipe.isLikedBy(currentUserId);
+
     return Positioned(
       top: 12,
       right: 12,
       child: GestureDetector(
-        onTap: _toggleFavorite,
+        onTap: _isProcessingLike ? null : _toggleLike,
         child: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
             color: Colors.black.withOpacity(0.3),
             shape: BoxShape.circle,
           ),
-          child: Icon(
-            _isFavorite ? Icons.favorite : Icons.favorite_border,
-            color: _isFavorite ? Colors.red : Colors.white,
-            size: 20,
-          ),
+          child: _isProcessingLike
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                )
+              : Icon(
+                  isLiked ? Icons.favorite : Icons.favorite_border,
+                  color: isLiked ? Colors.red : Colors.white,
+                  size: 20,
+                ),
         ),
       ),
     );
@@ -266,74 +255,16 @@ class _RecipeCardState extends State<RecipeCard>
           ),
           const SizedBox(height: 4),
           Text(
-            'By: ${widget.recipe.title}',
+            widget.recipe.description,
             style: TextStyle(
               color: Colors.white.withOpacity(0.9),
-              fontSize: 14,
+              fontSize: 12,
               fontWeight: FontWeight.w400,
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildRatingBadge() {
-    return Positioned(
-      top: 12,
-      left: 12,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: Colors.orange,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.star, color: Colors.white, size: 14),
-            const SizedBox(width: 2),
-            Text(
-              '12.3', //widget.recipe.rating!.toStringAsFixed(1),
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCookingTimeBadge() {
-    return Positioned(
-      bottom: 70,
-      right: 12,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.6),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.access_time, color: Colors.white, size: 12),
-            const SizedBox(width: 2),
-            Text(
-              '${widget.recipe.prepTime}m',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 11,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

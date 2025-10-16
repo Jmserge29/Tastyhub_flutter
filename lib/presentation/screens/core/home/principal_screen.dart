@@ -1,30 +1,78 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_tastyhub/config/providers/providers.dart';
+import 'package:flutter_tastyhub/domain/entities/receipe.dart';
+import 'package:flutter_tastyhub/presentation/screens/core/home/input_search/input_search_recipes.dart';
 import 'package:flutter_tastyhub/presentation/widgets/button_create_recipe.dart';
 import 'package:flutter_tastyhub/presentation/widgets/user_information.dart';
 import 'package:flutter_tastyhub/presentation/widgets/category/category_item.dart';
-import 'package:flutter_tastyhub/presentation/widgets/form/custom_input_form_field.dart';
 import 'package:flutter_tastyhub/presentation/screens/core/home/sections/recipes_section.dart';
 import 'package:flutter_tastyhub/presentation/screens/core/home/sections/categories_section.dart';
+import 'package:flutter_tastyhub/shared/utils/icons_category.dart';
 
-class PrincipalScreen extends ConsumerWidget {
-  PrincipalScreen({super.key});
-
-  // Mantener solo las categorías quemadas (mientras no tengas categorías en Firebase)
-  final List<CategoryModel> recommendedCategories = [
-    CategoryModel(id: '1', name: 'Italian', icon: Icons.local_pizza),
-    CategoryModel(id: '2', name: 'Chinese', icon: Icons.rice_bowl),
-    CategoryModel(id: '3', name: 'Mexican', icon: Icons.local_activity),
-    CategoryModel(id: '4', name: 'Desserts', icon: Icons.cake),
-    CategoryModel(id: '5', name: 'Healthy', icon: Icons.eco),
-    CategoryModel(id: '6', name: 'Fast Food', icon: Icons.fastfood),
-  ];
+class PrincipalScreen extends ConsumerStatefulWidget {
+  const PrincipalScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    // 🔥 AQUÍ TRAEMOS LAS RECETAS REALES DE FIREBASE
-    final recipesAsync = ref.watch(recipesStreamProvider);
+  ConsumerState<PrincipalScreen> createState() => _PrincipalScreenState();
+}
+
+class _PrincipalScreenState extends ConsumerState<PrincipalScreen> {
+  String _searchQuery = '';
+  List<Recipe> _filteredRecipes = [];
+  bool _isSearching = false;
+
+  // Método que se ejecuta cuando el usuario busca (después del debounce)
+  void _handleSearch(String query) {
+    setState(() {
+      _searchQuery = query;
+      _isSearching = query.isNotEmpty;
+    });
+
+    if (query.isEmpty) {
+      setState(() {
+        _filteredRecipes = [];
+      });
+      return;
+    }
+
+    // Filtrar recetas localmente
+    _performSearch(query);
+  }
+
+  // Lógica de filtrado de recetas
+  void _performSearch(String query) {
+    final recipesAsync = ref.read(recipesStreamProvider);
+
+    recipesAsync.whenData((allRecipes) {
+      final queryLower = query.toLowerCase();
+
+      final filtered = allRecipes.where((recipe) {
+        final titleMatch = recipe.title.toLowerCase().contains(queryLower);
+        final descriptionMatch = recipe.description.toLowerCase().contains(
+          queryLower,
+        );
+        final ingredientsMatch = recipe.ingredients.any(
+          (ingredient) => ingredient.toLowerCase().contains(queryLower),
+        );
+
+        return titleMatch || descriptionMatch || ingredientsMatch;
+      }).toList();
+
+      setState(() {
+        _filteredRecipes = filtered;
+      });
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Si está buscando, usar recetas filtradas; si no, usar el stream normal
+    final recipesAsync = _isSearching
+        ? AsyncValue.data(_filteredRecipes)
+        : ref.watch(recipesStreamProvider);
+
+    final categoriesAsync = ref.watch(categoriesStreamProvider);
 
     return Scaffold(
       body: Padding(
@@ -37,7 +85,7 @@ class PrincipalScreen extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 40),
-                    UserInformation(),
+                    const UserInformation(),
                     const SizedBox(height: 20),
                     const Text(
                       'Descubre tu próxima receta',
@@ -49,62 +97,133 @@ class PrincipalScreen extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    CustomInputFormField(
+
+                    // Widget de búsqueda
+                    InputSearchRecipes(
+                      onSearch: _handleSearch,
+                      debounceMilliseconds: 800,
                       hintText: 'Buscar recetas...',
-                      borderColor: Colors.transparent,
-                      prefixIcon: const Icon(Icons.search),
-                      onChanged: (value) {
-                        // TODO: Implementar búsqueda con Firebase
-                        // ref.read(searchQueryProvider.notifier).state = value;
-                      },
                     ),
+
                     const SizedBox(height: 20),
 
-                    // Categorías (mantener quemadas por ahora)
-                    CategoriesSection(categories: recommendedCategories),
+                    // Mostrar categorías solo si NO está buscando
+                    if (!_isSearching)
+                      categoriesAsync.when(
+                        data: (categories) {
+                          if (categories.isEmpty) {
+                            return const SizedBox.shrink();
+                          }
+
+                          final categoriesAdapted = categories
+                              .map<CategoryModel>(
+                                (c) => CategoryModel(
+                                  id: c.id,
+                                  name: c.name,
+                                  icon: getCategoryIcon(c.name),
+                                ),
+                              )
+                              .toList();
+
+                          return CategoriesSection(
+                            categories: categoriesAdapted,
+                          );
+                        },
+                        loading: () =>
+                            const Center(child: CircularProgressIndicator()),
+                        error: (error, stack) => Center(
+                          child: Text('Error al cargar categorías: $error'),
+                        ),
+                      ),
 
                     const SizedBox(height: 4),
 
-                    // 🔥 RECETAS DESDE FIREBASE
+                    // Mostrar título de búsqueda si está buscando
+                    if (_isSearching) ...[
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.search,
+                              size: 20,
+                              color: Colors.grey.shade600,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                _filteredRecipes.isEmpty
+                                    ? 'No se encontraron resultados para "$_searchQuery"'
+                                    : 'Resultados para "$_searchQuery" (${_filteredRecipes.length})',
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+
+                    // Recetas (filtradas o normales)
                     recipesAsync.when(
                       data: (recipes) {
                         if (recipes.isEmpty) {
-                          return const Center(
+                          return Center(
                             child: Padding(
-                              padding: EdgeInsets.all(40.0),
+                              padding: const EdgeInsets.all(40.0),
                               child: Column(
                                 children: [
                                   Icon(
-                                    Icons.restaurant,
+                                    _isSearching
+                                        ? Icons.search_off
+                                        : Icons.restaurant,
                                     size: 64,
-                                    color: Colors.grey,
+                                    color: Colors.grey.shade400,
                                   ),
-                                  SizedBox(height: 16),
+                                  const SizedBox(height: 16),
                                   Text(
-                                    'No hay recetas aún',
-                                    style: TextStyle(
+                                    _isSearching
+                                        ? 'No se encontraron recetas'
+                                        : 'No hay recetas aún',
+                                    style: const TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                  Text('¡Crea la primera receta!'),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    _isSearching
+                                        ? 'Intenta con otros términos de búsqueda'
+                                        : '¡Crea la primera receta!',
+                                    style: TextStyle(
+                                      color: Colors.grey.shade600,
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
                           );
                         }
 
+                        // Si está buscando, mostrar solo resultados
+                        if (_isSearching) {
+                          return RecipesSection(
+                            title: 'Recetas encontradas',
+                            recipes: recipes,
+                          );
+                        }
+
                         return Column(
                           children: [
-                            // Recetas recientes (todas las recetas)
                             RecipesSection(
                               title: 'Recetas recientes',
                               recipes: recipes,
                             ),
-
                             const SizedBox(height: 4),
-
-                            // Recetas recomendadas (solo las que tienen rating > 4.0)
                             if (recipes
                                 .where((r) => r.prepTime > 4.0)
                                 .isNotEmpty)
@@ -114,31 +233,29 @@ class PrincipalScreen extends ConsumerWidget {
                                     .where((r) => r.prepTime > 4.0)
                                     .toList(),
                               ),
-
                             const SizedBox(height: 4),
-
-                            // Recetas populares (las que son favoritas)
-                            RecipesSection(
-                              title: 'Recetas populares',
-                              recipes: recipes.toList(),
-                            ),
-
-                            const SizedBox(height: 4),
-
-                            // Recetas rápidas (menos de 30 minutos)
                             if (recipes
-                                .where((r) => r.prepTime < 30)
+                                .where((r) => r.likesCount > 1)
+                                .isNotEmpty)
+                              RecipesSection(
+                                title: 'Recetas populares',
+                                recipes: recipes
+                                    .where((r) => r.likesCount > 1)
+                                    .toList(),
+                              ),
+                            const SizedBox(height: 4),
+                            if (recipes
+                                .where((r) => r.prepTime < 45)
                                 .isNotEmpty)
                               RecipesSection(
                                 title: 'Recetas rápidas',
                                 recipes: recipes
-                                    .where((r) => r.prepTime < 30)
+                                    .where((r) => r.prepTime < 45)
                                     .toList(),
                               ),
                           ],
                         );
                       },
-
                       loading: () => const Center(
                         child: Padding(
                           padding: EdgeInsets.all(40.0),
@@ -151,7 +268,6 @@ class PrincipalScreen extends ConsumerWidget {
                           ),
                         ),
                       ),
-
                       error: (error, stack) => Center(
                         child: Padding(
                           padding: const EdgeInsets.all(40.0),
@@ -163,9 +279,9 @@ class PrincipalScreen extends ConsumerWidget {
                                 color: Colors.red,
                               ),
                               const SizedBox(height: 16),
-                              Text(
+                              const Text(
                                 'Error al cargar recetas',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -174,7 +290,6 @@ class PrincipalScreen extends ConsumerWidget {
                               const SizedBox(height: 16),
                               ElevatedButton(
                                 onPressed: () {
-                                  // Refrescar datos
                                   ref.invalidate(recipesStreamProvider);
                                 },
                                 child: const Text('Reintentar'),

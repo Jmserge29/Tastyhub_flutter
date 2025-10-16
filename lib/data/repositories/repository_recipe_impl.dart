@@ -34,6 +34,25 @@ class RecipeRepositoryImpl implements RecipeRepository {
   }
 
   @override
+  Future<void> toggleLike(String recipeId, String userId) async {
+    try {
+      await dataSource.toggleLike(recipeId, userId);
+    } on ServerException catch (e) {
+      throw ServerFailure(e.message);
+    }
+  }
+
+  @override
+  Future<List<Recipe>> getLikedRecipesByUser(String userId) async {
+    try {
+      final recipeModels = await dataSource.getLikedRecipesByUser(userId);
+      return recipeModels.map((model) => model.toEntity()).toList();
+    } on ServerException catch (e) {
+      throw ServerFailure(e.message);
+    }
+  }
+
+  @override
   Future<List<Recipe>> getRecipesByUser(String userId) async {
     try {
       final recipeModels = await dataSource.getRecipesByUser(userId);

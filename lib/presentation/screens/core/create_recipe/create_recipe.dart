@@ -1,5 +1,10 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_tastyhub/config/providers/ia/ia_provider.dart';
+import 'package:flutter_tastyhub/config/providers/theme/theme_provider.dart';
+import 'package:flutter_tastyhub/shared/types/app_theme_type.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:flutter_tastyhub/config/providers/providers.dart';
 import 'package:flutter_tastyhub/presentation/widgets/custom_button.dart';
 import 'package:flutter_tastyhub/presentation/widgets/form/custom_dropdown_form_field.dart';
@@ -17,10 +22,13 @@ class _CreateRecipeScreenState extends ConsumerState<CreateRecipeScreen> {
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _prepTimeController = TextEditingController();
+  final ImagePicker _picker = ImagePicker();
 
   String? _selectedCategory;
   List<String> _selectedIngredients = [];
   bool _isLoading = false;
+  bool _isImprovingDescription = false; // Nuevo estado para la IA
+  File? _selectedImage;
 
   final List<String> _categories = [
     'Mexicana',
@@ -64,56 +72,215 @@ class _CreateRecipeScreenState extends ConsumerState<CreateRecipeScreen> {
     super.dispose();
   }
 
+  // Función para mejorar descripción con IA
+  Future<void> _improveDescriptionWithAI() async {
+    final description = _descriptionController.text.trim();
+
+    if (description.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('⚠️ Por favor escribe una descripción primero'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _isImprovingDescription = true;
+    });
+
+    try {
+      final aiService = ref.read(aiServiceProvider);
+      final improvedDescription = await aiService.improveRecipeDescription(
+        description: description,
+        title: _titleController.text.trim().isNotEmpty
+            ? _titleController.text.trim()
+            : null,
+        ingredients: _selectedIngredients.isNotEmpty
+            ? _selectedIngredients
+            : null,
+      );
+
+      setState(() {
+        _descriptionController.text = improvedDescription;
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('✨ ¡Descripción mejorada con IA!'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ Error: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } finally {
+      setState(() {
+        _isImprovingDescription = false;
+      });
+    }
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      final XFile? pickedFile = await _picker.pickImage(
+        source: source,
+        maxWidth: 1920,
+        maxHeight: 1080,
+        imageQuality: 85,
+      );
+
+      if (pickedFile != null) {
+        setState(() {
+          _selectedImage = File(pickedFile.path);
+        });
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error al seleccionar imagen: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  void _showImageSourceDialog() {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Wrap(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_camera),
+              title: const Text('Cámara'),
+              onTap: () {
+                Navigator.pop(context);
+                _pickImage(ImageSource.camera);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Galería'),
+              onTap: () {
+                Navigator.pop(context);
+                _pickImage(ImageSource.gallery);
+              },
+            ),
+            if (_selectedImage != null)
+              ListTile(
+                leading: const Icon(Icons.delete, color: Colors.red),
+                title: const Text(
+                  'Eliminar imagen',
+                  style: TextStyle(color: Colors.red),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  setState(() {
+                    _selectedImage = null;
+                  });
+                },
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final themeState = ref.watch(themeProvider);
     return Scaffold(
       body: Column(
         children: [
           // Header section con imagen
-          Container(
-            height: 250,
-            width: double.infinity,
-            decoration: const BoxDecoration(
-              color: Color.fromRGBO(217, 217, 217, 1),
-            ),
-            child: Stack(
-              children: [
-                // Botón de regreso
-                Positioned(
-                  top: 50,
-                  left: 20,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: IconButton(
-                      icon: const Icon(Icons.arrow_back, color: Colors.black),
-                      onPressed: () => Navigator.of(context).pop(),
+          GestureDetector(
+            onTap: _showImageSourceDialog,
+            child: Container(
+              height: 250,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: const Color.fromRGBO(217, 217, 217, 1),
+                image: _selectedImage != null
+                    ? DecorationImage(
+                        image: FileImage(_selectedImage!),
+                        fit: BoxFit.cover,
+                      )
+                    : null,
+              ),
+              child: Stack(
+                children: [
+                  // Botón de regreso
+                  Positioned(
+                    top: 50,
+                    left: 20,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.arrow_back, color: Colors.black),
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
                     ),
                   ),
-                ),
 
-                // Icono central de plato
-                Center(
-                  child: Container(
-                    width: 80,
-                    height: 80,
-                    child: Image.asset(
-                      'assets/images/default_image_receipe.png',
-                      width: 24,
-                      height: 24,
+                  // Icono central
+                  Center(
+                    child: Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.9),
+                        shape: BoxShape.circle,
+                      ),
+                      child: _selectedImage == null
+                          ? Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: const [
+                                Icon(
+                                  Icons.add_photo_alternate,
+                                  size: 32,
+                                  color: Colors.grey,
+                                ),
+                                SizedBox(height: 4),
+                                Text(
+                                  'Agregar foto',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ],
+                            )
+                          : const Icon(
+                              Icons.edit,
+                              size: 32,
+                              color: Colors.grey,
+                            ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
 
@@ -155,21 +322,89 @@ class _CreateRecipeScreenState extends ConsumerState<CreateRecipeScreen> {
                         ),
                         const SizedBox(height: 10),
 
-                        // Descripción
-                        CustomInputFormField(
-                          controller: _descriptionController,
-                          labelText: 'Descripción',
-                          keyboardType: TextInputType.multiline,
-                          maxLines: 3,
-                          hintText: 'Una deliciosa receta de...',
-                          borderColor: Colors.transparent,
-                          onChanged: (value) {},
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Por favor ingresa una descripción';
-                            }
-                            return null;
-                          },
+                        // Descripción con botón de IA
+                        Stack(
+                          children: [
+                            CustomInputFormField(
+                              controller: _descriptionController,
+                              labelText: 'Descripción',
+                              keyboardType: TextInputType.multiline,
+                              maxLines: 3,
+                              hintText: 'Una deliciosa receta de...',
+                              borderColor: Colors.transparent,
+                              onChanged: (value) {},
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Por favor ingresa una descripción';
+                                }
+                                return null;
+                              },
+                            ),
+                            // Botón mágico de IA
+                            Positioned(
+                              right: 8,
+                              top: 8,
+                              child: Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  onTap: _isImprovingDescription
+                                      ? null
+                                      : _improveDescriptionWithAI,
+                                  borderRadius: BorderRadius.circular(20),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: themeState.themeType.primaryColor
+                                          .withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(20),
+                                      border: Border.all(
+                                        color: themeState.themeType.primaryColor
+                                            .withOpacity(0.3),
+                                        width: 1,
+                                      ),
+                                    ),
+                                    child: _isImprovingDescription
+                                        ? SizedBox(
+                                            width: 20,
+                                            height: 20,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              valueColor:
+                                                  AlwaysStoppedAnimation<Color>(
+                                                    themeState
+                                                        .themeType
+                                                        .primaryColor,
+                                                  ),
+                                            ),
+                                          )
+                                        : Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(
+                                                Icons.auto_fix_high,
+                                                size: 18,
+                                                color: themeState
+                                                    .themeType
+                                                    .primaryColor,
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                'IA',
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: themeState
+                                                      .themeType
+                                                      .primaryColor,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 10),
 
@@ -230,7 +465,7 @@ class _CreateRecipeScreenState extends ConsumerState<CreateRecipeScreen> {
                             setState(() {
                               if (value != null &&
                                   !_selectedIngredients.contains(value)) {
-                                _selectedIngredients.add(value as String);
+                                _selectedIngredients.add(value);
                               }
                             });
                           },
@@ -249,7 +484,11 @@ class _CreateRecipeScreenState extends ConsumerState<CreateRecipeScreen> {
                                   vertical: 6,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: const Color.fromRGBO(145, 93, 86, 1),
+                                  color:
+                                      themeState.themeType ==
+                                          AppThemeType.vintage
+                                      ? const Color.fromRGBO(145, 93, 86, 1)
+                                      : themeState.themeType.primaryColor,
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: Row(
@@ -292,12 +531,8 @@ class _CreateRecipeScreenState extends ConsumerState<CreateRecipeScreen> {
                               : CustomButton(
                                   text: 'Crear receta',
                                   onPressed: _createRecipe,
-                                  backgroundColor: const Color.fromRGBO(
-                                    82,
-                                    34,
-                                    34,
-                                    1,
-                                  ),
+                                  backgroundColor:
+                                      themeState.themeType.accentColor,
                                   size: ButtonSize.small,
                                 ),
                         ),
@@ -333,30 +568,37 @@ class _CreateRecipeScreenState extends ConsumerState<CreateRecipeScreen> {
     });
 
     try {
-      // Obtener el UseCase desde Riverpod
+      final currentUser = await ref.read(getCurrentUserUseCaseProvider).call();
+
+      if (currentUser == null) {
+        throw Exception('No hay usuario autenticado');
+      }
+
       final createRecipeUseCase = ref.read(createRecipeUseCaseProvider);
 
-      // Crear la receta en Firebase
       final recipeId = await createRecipeUseCase.call(
         title: _titleController.text.trim(),
         description: _descriptionController.text.trim(),
         ingredients: _selectedIngredients,
         prepTime: int.parse(_prepTimeController.text.trim()),
-        categoryId:
-            _selectedCategory!, // Por ahora usamos el nombre, luego puedes usar IDs reales
-        userId: 'default-user', // TODO: Obtener del usuario autenticado
+        categoryId: _selectedCategory!,
+        userId: currentUser.id,
+        imageFile: _selectedImage,
       );
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('✅ ¡Receta creada exitosamente!'),
+          SnackBar(
+            content: Text(
+              _selectedImage != null
+                  ? '✅ ¡Receta creada con imagen!'
+                  : '✅ ¡Receta creada exitosamente!',
+            ),
             backgroundColor: Colors.green,
-            duration: Duration(seconds: 2),
+            duration: const Duration(seconds: 2),
           ),
         );
 
-        // Limpiar formulario
         _titleController.clear();
         _descriptionController.clear();
         _prepTimeController.clear();
@@ -364,9 +606,9 @@ class _CreateRecipeScreenState extends ConsumerState<CreateRecipeScreen> {
         setState(() {
           _selectedCategory = null;
           _selectedIngredients.clear();
+          _selectedImage = null;
         });
 
-        // Regresar a la pantalla anterior después de 1 segundo
         await Future.delayed(const Duration(seconds: 1));
         if (mounted) {
           Navigator.pop(context);

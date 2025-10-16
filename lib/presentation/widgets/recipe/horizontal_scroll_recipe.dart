@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_tastyhub/domain/entities/receipe.dart';
 import 'package:flutter_tastyhub/presentation/widgets/recipe/recipe_card.dart';
 
 /// Widget para scroll horizontal de recetas
-class HorizontalRecipesList extends StatelessWidget {
+class HorizontalRecipesList extends ConsumerWidget {
   final List<Recipe> recipes;
   final String? title;
   final ValueChanged<Recipe>? onRecipeTap;
@@ -28,7 +29,7 @@ class HorizontalRecipesList extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     if (recipes.isEmpty) {
       return const SizedBox.shrink();
     }

@@ -10,4 +10,6 @@ abstract class RecipeRepository {
   Future<void> deleteRecipe(String id);
   Future<List<Recipe>> searchRecipes(String query);
   Stream<List<Recipe>> watchRecipes();
+  Future<void> toggleLike(String recipeId, String userId);
+  Future<List<Recipe>> getLikedRecipesByUser(String userId);
 }

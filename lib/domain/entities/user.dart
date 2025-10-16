@@ -5,6 +5,10 @@ class User {
   final String? profileImageUrl;
   final DateTime createdAt;
   final bool isActive;
+  final List<String> followers;
+  final List<String> following;
+  final String? bio;
+  final String? role;
 
   User({
     required this.id,
@@ -13,6 +17,10 @@ class User {
     this.profileImageUrl,
     required this.createdAt,
     this.isActive = true,
+    this.followers = const [],
+    this.following = const [],
+    this.bio,
+    this.role,
   });
 
   Map<String, dynamic> toMap() {
@@ -22,6 +30,10 @@ class User {
       'profileImageUrl': profileImageUrl,
       'createdAt': createdAt.millisecondsSinceEpoch,
       'isActive': isActive,
+      'followers': followers,
+      'following': following,
+      'bio': bio,
+      'role': role,
     };
   }
 
@@ -33,6 +45,17 @@ class User {
       profileImageUrl: map['profileImageUrl'],
       createdAt: DateTime.fromMillisecondsSinceEpoch(map['createdAt']),
       isActive: map['isActive'] ?? true,
+      followers: List<String>.from(map['followers'] ?? []),
+      following: List<String>.from(map['following'] ?? []),
+      bio: map['bio'],
+      role: map['role'],
     );
   }
+
+  // Métodos útiles
+  int get followersCount => followers.length;
+  int get followingCount => following.length;
+
+  bool isFollowing(String userId) => following.contains(userId);
+  bool hasFollower(String userId) => followers.contains(userId);
 }

@@ -1,21 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_tastyhub/config/providers/providers.dart';
 import 'package:flutter_tastyhub/presentation/screens/auth/login/login_screen.dart';
 import 'package:flutter_tastyhub/presentation/screens/core/home/principal_screen.dart';
 import 'package:flutter_tastyhub/presentation/widgets/custom_button.dart';
 import 'package:flutter_tastyhub/presentation/widgets/form/custom_input_form_field.dart';
 
-class FormStateRegister extends StatefulWidget {
+class FormStateRegister extends ConsumerStatefulWidget {
   const FormStateRegister({super.key});
 
   @override
-  State<FormStateRegister> createState() => _FormStateRegisterState();
+  ConsumerState<FormStateRegister> createState() => _FormStateRegisterState();
 }
 
-class _FormStateRegisterState extends State<FormStateRegister> {
+class _FormStateRegisterState extends ConsumerState<FormStateRegister> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+
   @override
   void dispose() {
     _nameController.dispose();
@@ -56,6 +59,27 @@ class _FormStateRegisterState extends State<FormStateRegister> {
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authNotifierProvider);
+
+    // Escuchar cambios en el estado de autenticación
+    ref.listen(authNotifierProvider, (previous, next) {
+      if (next.status == AuthStatus.authenticated) {
+        // Navegar al home cuando se registra exitosamente
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => PrincipalScreen()),
+        );
+      } else if (next.status == AuthStatus.error) {
+        // Mostrar error
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(next.errorMessage ?? 'Error al registrarse'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    });
+
     return Form(
       key: _formKey,
       child: Column(
@@ -69,7 +93,7 @@ class _FormStateRegisterState extends State<FormStateRegister> {
             prefixIcon: const Icon(Icons.person_outlined),
             validator: _validateName,
             textInputAction: TextInputAction.next,
-            labelStyle: TextStyle(
+            labelStyle: const TextStyle(
               color: Colors.white,
               fontSize: 14,
               fontWeight: FontWeight.w600,
@@ -84,7 +108,7 @@ class _FormStateRegisterState extends State<FormStateRegister> {
             prefixIcon: const Icon(Icons.email_outlined),
             validator: _validateEmail,
             textInputAction: TextInputAction.next,
-            labelStyle: TextStyle(
+            labelStyle: const TextStyle(
               color: Colors.white,
               fontSize: 14,
               fontWeight: FontWeight.w600,
@@ -93,7 +117,7 @@ class _FormStateRegisterState extends State<FormStateRegister> {
           const SizedBox(height: 12),
           CustomInputFormField(
             labelText: 'Contraseña',
-            labelStyle: TextStyle(
+            labelStyle: const TextStyle(
               color: Colors.white,
               fontSize: 14,
               fontWeight: FontWeight.w600,
@@ -108,7 +132,7 @@ class _FormStateRegisterState extends State<FormStateRegister> {
           const SizedBox(height: 6),
           Row(
             children: [
-              Text(
+              const Text(
                 '¿Ya tienes una cuenta?',
                 style: TextStyle(
                   color: Colors.white,
@@ -125,10 +149,10 @@ class _FormStateRegisterState extends State<FormStateRegister> {
                     ),
                   );
                 },
-                child: Text(
+                child: const Text(
                   'Inicia sesión',
                   style: TextStyle(
-                    color: const Color.fromARGB(255, 150, 69, 69),
+                    color: Color.fromARGB(255, 150, 69, 69),
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                   ),
@@ -137,16 +161,26 @@ class _FormStateRegisterState extends State<FormStateRegister> {
             ],
           ),
           const SizedBox(height: 32),
-          CustomButton(
-            text: 'Registrarse',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => PrincipalScreen()),
-              );
-            },
-            size: ButtonSize.small,
-          ),
+
+          // Botón con estado de carga
+          authState.status == AuthStatus.loading
+              ? const CircularProgressIndicator(color: Colors.white)
+              : CustomButton(
+                  text: 'Registrarse',
+                  onPressed: () {
+                    if (_formKey.currentState!.validate()) {
+                      // Llamar al registro desde Riverpod
+                      ref
+                          .read(authNotifierProvider.notifier)
+                          .register(
+                            _emailController.text.trim(),
+                            _passwordController.text,
+                            _nameController.text.trim(),
+                          );
+                    }
+                  },
+                  size: ButtonSize.small,
+                ),
         ],
       ),
     );

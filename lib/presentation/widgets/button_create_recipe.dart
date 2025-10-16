@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_tastyhub/config/providers/theme/theme_provider.dart';
 import 'package:flutter_tastyhub/presentation/screens/core/create_recipe/create_recipe.dart';
 
-class ButtonCreateRecipe extends StatelessWidget {
+class ButtonCreateRecipe extends ConsumerWidget {
   const ButtonCreateRecipe({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = ref.watch(themeProvider);
     return SizedBox(
       width: 56,
       height: 56,
@@ -17,7 +20,7 @@ class ButtonCreateRecipe extends StatelessWidget {
             MaterialPageRoute(builder: (context) => const CreateRecipeScreen()),
           );
         },
-        backgroundColor: const Color.fromARGB(255, 145, 93, 86),
+        backgroundColor: theme.themeType.accentColor,
         child: const Icon(Icons.add, color: Colors.white),
       ),
     );

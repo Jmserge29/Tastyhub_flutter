@@ -5,9 +5,11 @@ class Recipe {
   final List<String> ingredients;
   final String imageUrl;
   final int prepTime;
+  final String categoryId;
   final String userId;
   final DateTime createdAt;
-  final String categoryId;
+  final int likesCount;
+  final List<String> likedByUsers;
 
   Recipe({
     required this.id,
@@ -19,7 +21,13 @@ class Recipe {
     required this.categoryId,
     required this.userId,
     required this.createdAt,
+    this.likesCount = 0,
+    this.likedByUsers = const [],
   });
+
+  bool isLikedBy(String userId) {
+    return likedByUsers.contains(userId);
+  }
 
   Map<String, dynamic> toMap() {
     return {
@@ -28,9 +36,11 @@ class Recipe {
       'ingredients': ingredients,
       'imageUrl': imageUrl,
       'prepTime': prepTime,
-      'userId': userId,
       'categoryId': categoryId,
+      'userId': userId,
       'createdAt': createdAt.millisecondsSinceEpoch,
+      'likesCount': likesCount,
+      'likedByUsers': likedByUsers,
     };
   }
 
@@ -45,6 +55,10 @@ class Recipe {
       categoryId: map['categoryId'] ?? '',
       userId: map['userId'] ?? '',
       createdAt: DateTime.fromMillisecondsSinceEpoch(map['createdAt']),
+      likesCount: map['likesCount'] ?? 0,
+      likedByUsers: map['likedByUsers'] != null
+          ? List<String>.from(map['likedByUsers'])
+          : [],
     );
   }
 }

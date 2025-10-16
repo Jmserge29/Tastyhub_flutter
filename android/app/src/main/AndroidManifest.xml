@@ -1,4 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Inicio [Permisos necesarios para la cámara y el almacenamiento] -->
+    <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <!-- Fin [Permisos necesarios para la cámara y el almacenamiento] -->
     <application
         android:label="flutter_tastyhub"
         android:name="${applicationName}"

@@ -12,6 +12,8 @@ abstract class FirebaseRecipeDataSource {
   Future<void> deleteRecipe(String id);
   Future<List<RecipeModel>> searchRecipes(String query);
   Stream<List<RecipeModel>> watchRecipes();
+  Future<void> toggleLike(String recipeId, String userId);
+  Future<List<RecipeModel>> getLikedRecipesByUser(String userId);
 }
 
 class FirebaseRecipeDataSourceImpl implements FirebaseRecipeDataSource {
@@ -57,6 +59,54 @@ class FirebaseRecipeDataSourceImpl implements FirebaseRecipeDataSource {
   }
 
   @override
+  Future<void> toggleLike(String recipeId, String userId) async {
+    try {
+      final docRef = _firestore.collection(_collection).doc(recipeId);
+      final doc = await docRef.get();
+
+      if (!doc.exists) {
+        throw NotFoundException('Recipe not found');
+      }
+
+      final data = doc.data()!;
+      final likedByUsers = List<String>.from(data['likedByUsers'] ?? []);
+
+      if (likedByUsers.contains(userId)) {
+        // Ya le dio like, remover (unlike)
+        await docRef.update({
+          'likedByUsers': FieldValue.arrayRemove([userId]),
+          'likesCount': FieldValue.increment(-1),
+        });
+      } else {
+        // No le ha dado like, agregar
+        await docRef.update({
+          'likedByUsers': FieldValue.arrayUnion([userId]),
+          'likesCount': FieldValue.increment(1),
+        });
+      }
+    } catch (e) {
+      throw ServerException('Failed to toggle like: ${e.toString()}');
+    }
+  }
+
+  @override
+  Future<List<RecipeModel>> getLikedRecipesByUser(String userId) async {
+    try {
+      final querySnapshot = await _firestore
+          .collection(_collection)
+          .where('likedByUsers', arrayContains: userId)
+          .orderBy('createdAt', descending: true)
+          .get();
+
+      return querySnapshot.docs
+          .map((doc) => RecipeModel.fromFirestore(doc))
+          .toList();
+    } catch (e) {
+      throw ServerException('Failed to get liked recipes: ${e.toString()}');
+    }
+  }
+
+  @override
   Future<List<RecipeModel>> getRecipesByUser(String userId) async {
     try {
       final querySnapshot = await _firestore
@@ -65,11 +115,32 @@ class FirebaseRecipeDataSourceImpl implements FirebaseRecipeDataSource {
           .orderBy('createdAt', descending: true)
           .get();
 
-      return querySnapshot.docs
-          .map((doc) => RecipeModel.fromFirestore(doc))
-          .toList();
+      if (querySnapshot.docs.isEmpty) {
+        return [];
+      }
+
+      final recipes = querySnapshot.docs.map((doc) {
+        try {
+          return RecipeModel.fromFirestore(doc);
+        } catch (e) {
+          rethrow;
+        }
+      }).toList();
+
+      return recipes;
+    } on FirebaseException catch (e) {
+      // Error específico de índice faltante
+      if (e.code == 'failed-precondition') {
+        throw ServerException(
+          'Se requiere un índice en Firestore. Revisa la consola para el link.',
+        );
+      }
+
+      throw ServerException('Error de Firebase: ${e.message}');
     } catch (e) {
-      throw ServerException('Failed to get recipes by user: ${e.toString()}');
+      throw ServerException(
+        'Error al obtener recetas del usuario: ${e.toString()}',
+      );
     }
   }
 

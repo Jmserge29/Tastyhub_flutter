@@ -20,23 +20,25 @@ class RegisterScreen extends StatelessWidget {
           Container(color: Colors.black.withValues(alpha: 0.7)),
           Padding(
             padding: EdgeInsets.all(30.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                BrandingHeader(),
-                SizedBox(height: 140),
-                Text(
-                  "Hola bienvenido!",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 52,
-                    fontWeight: FontWeight.w900,
-                    height: 1.02,
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  BrandingHeader(),
+                  SizedBox(height: 140),
+                  Text(
+                    "Hola bienvenido!",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 52,
+                      fontWeight: FontWeight.w900,
+                      height: 1.02,
+                    ),
                   ),
-                ),
-                SizedBox(height: 16),
-                FormStateRegister(),
-              ],
+                  SizedBox(height: 16),
+                  FormStateRegister(),
+                ],
+              ),
             ),
           ),
         ],

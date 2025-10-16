@@ -38,13 +38,14 @@ class _RecipesSectionState extends State<RecipesSection> {
       ).showSnackBar(SnackBar(content: Text('Seleccionaste: ${recipe.title}')));
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => DetailRecipeScreen()),
+        MaterialPageRoute(
+          builder: (context) => DetailRecipeScreen(recipeId: recipe.id),
+        ),
       );
     }
   }
 
   void _onFavoriteToggle(Recipe recipe) {
-    // Usar callback personalizado si existe, sino usar default
     if (widget.onFavoriteToggle != null) {
       widget.onFavoriteToggle!(recipe);
     } else {
@@ -67,12 +68,11 @@ class _RecipesSectionState extends State<RecipesSection> {
       return const SizedBox.shrink();
     }
 
-    // No usar SingleChildScrollView aquí, el HorizontalRecipesList ya maneja su propio scroll
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: HorizontalRecipesList(
-        title: widget.title, // ✅ Usar el título dinámico
-        recipes: widget.recipes, // ✅ Usar las recetas pasadas como parámetro
+        title: widget.title,
+        recipes: widget.recipes,
         itemWidth: widget.itemWidth,
         itemHeight: widget.itemHeight,
         onRecipeTap: _onRecipeTap,

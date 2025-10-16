@@ -10,6 +10,10 @@ class UserModel extends User {
     super.profileImageUrl,
     required super.createdAt,
     super.isActive = true,
+    super.followers = const [],
+    super.following = const [],
+    super.bio,
+    super.role,
   });
 
   factory UserModel.fromFirebaseUser(firebase_auth.User firebaseUser) {
@@ -20,6 +24,10 @@ class UserModel extends User {
       profileImageUrl: firebaseUser.photoURL,
       createdAt: firebaseUser.metadata.creationTime ?? DateTime.now(),
       isActive: true,
+      followers: [],
+      following: [],
+      bio: null,
+      role: null,
     );
   }
 
@@ -35,6 +43,14 @@ class UserModel extends User {
           ? (data['createdAt'] as Timestamp).toDate()
           : DateTime.now(),
       isActive: data['isActive'] ?? true,
+      followers: data['followers'] != null
+          ? List<String>.from(data['followers'])
+          : [],
+      following: data['following'] != null
+          ? List<String>.from(data['following'])
+          : [],
+      bio: data['bio'],
+      role: data['role'],
     );
   }
 
@@ -48,6 +64,14 @@ class UserModel extends User {
           ? DateTime.fromMillisecondsSinceEpoch(map['createdAt'])
           : DateTime.now(),
       isActive: map['isActive'] ?? true,
+      followers: map['followers'] != null
+          ? List<String>.from(map['followers'])
+          : [],
+      following: map['following'] != null
+          ? List<String>.from(map['following'])
+          : [],
+      bio: map['bio'],
+      role: map['role'],
     );
   }
 
@@ -58,6 +82,10 @@ class UserModel extends User {
       'profileImageUrl': profileImageUrl,
       'createdAt': FieldValue.serverTimestamp(),
       'isActive': isActive,
+      'followers': followers,
+      'following': following,
+      'bio': bio,
+      'role': role,
     };
   }
 
@@ -69,6 +97,10 @@ class UserModel extends User {
       'profileImageUrl': profileImageUrl,
       'createdAt': createdAt.millisecondsSinceEpoch,
       'isActive': isActive,
+      'followers': followers,
+      'following': following,
+      'bio': bio,
+      'role': role,
     };
   }
 
@@ -79,6 +111,10 @@ class UserModel extends User {
     String? profileImageUrl,
     DateTime? createdAt,
     bool? isActive,
+    List<String>? followers,
+    List<String>? following,
+    String? bio,
+    String? role,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -87,6 +123,10 @@ class UserModel extends User {
       profileImageUrl: profileImageUrl ?? this.profileImageUrl,
       createdAt: createdAt ?? this.createdAt,
       isActive: isActive ?? this.isActive,
+      followers: followers ?? this.followers,
+      following: following ?? this.following,
+      bio: bio ?? this.bio,
+      role: role ?? this.role,
     );
   }
 
@@ -99,6 +139,10 @@ class UserModel extends User {
       profileImageUrl: profileImageUrl,
       createdAt: createdAt,
       isActive: isActive,
+      followers: followers,
+      following: following,
+      bio: bio,
+      role: role,
     );
   }
 }

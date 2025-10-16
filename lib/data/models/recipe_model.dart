@@ -12,9 +12,10 @@ class RecipeModel extends Recipe {
     required super.categoryId,
     required super.userId,
     required super.createdAt,
+    super.likesCount = 0,
+    super.likedByUsers = const [],
   });
 
-  // Crear desde Firestore Document
   factory RecipeModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
 
@@ -30,6 +31,10 @@ class RecipeModel extends Recipe {
       createdAt: data['createdAt'] != null
           ? (data['createdAt'] as Timestamp).toDate()
           : DateTime.now(),
+      likedByUsers: data['likedByUsers'] != null
+          ? List<String>.from(data['likedByUsers'])
+          : [],
+      likesCount: data['likesCount'] ?? 0,
     );
   }
 
@@ -47,6 +52,8 @@ class RecipeModel extends Recipe {
       createdAt: map['createdAt'] != null
           ? DateTime.fromMillisecondsSinceEpoch(map['createdAt'])
           : DateTime.now(),
+      likedByUsers: List<String>.from(map['likedByUsers'] ?? []),
+      likesCount: map['likesCount'] ?? 0,
     );
   }
 
@@ -61,6 +68,8 @@ class RecipeModel extends Recipe {
       categoryId: recipe.categoryId,
       userId: recipe.userId,
       createdAt: recipe.createdAt,
+      likesCount: recipe.likesCount,
+      likedByUsers: recipe.likedByUsers,
     );
   }
 
@@ -74,6 +83,8 @@ class RecipeModel extends Recipe {
       'categoryId': categoryId,
       'userId': userId,
       'createdAt': FieldValue.serverTimestamp(),
+      'likesCount': likesCount,
+      'likedByUsers': likedByUsers,
     };
   }
 
@@ -88,6 +99,8 @@ class RecipeModel extends Recipe {
       'categoryId': categoryId,
       'userId': userId,
       'createdAt': createdAt.millisecondsSinceEpoch,
+      'likesCount': likesCount,
+      'likedByUsers': likedByUsers,
     };
   }
 
@@ -101,6 +114,8 @@ class RecipeModel extends Recipe {
     String? categoryId,
     String? userId,
     DateTime? createdAt,
+    int? likesCount,
+    List<String>? likedByUsers,
   }) {
     return RecipeModel(
       id: id ?? this.id,
@@ -112,6 +127,8 @@ class RecipeModel extends Recipe {
       categoryId: categoryId ?? this.categoryId,
       userId: userId ?? this.userId,
       createdAt: createdAt ?? this.createdAt,
+      likesCount: likesCount ?? this.likesCount,
+      likedByUsers: likedByUsers ?? this.likedByUsers,
     );
   }
 
@@ -126,6 +143,8 @@ class RecipeModel extends Recipe {
       categoryId: categoryId,
       userId: userId,
       createdAt: createdAt,
+      likesCount: likesCount,
+      likedByUsers: likedByUsers,
     );
   }
 }

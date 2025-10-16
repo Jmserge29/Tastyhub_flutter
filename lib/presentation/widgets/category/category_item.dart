@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_tastyhub/config/providers/theme/theme_provider.dart';
 
 /// Modelo de datos para una categoría
 class CategoryModel {
@@ -18,7 +20,7 @@ class CategoryModel {
 }
 
 /// Widget individual para cada categoría
-class CategoryItem extends StatefulWidget {
+class CategoryItem extends ConsumerStatefulWidget {
   final CategoryModel category;
   final VoidCallback? onTap;
   final double size;
@@ -35,10 +37,10 @@ class CategoryItem extends StatefulWidget {
   });
 
   @override
-  State<CategoryItem> createState() => _CategoryItemState();
+  ConsumerState<CategoryItem> createState() => _CategoryItemState();
 }
 
-class _CategoryItemState extends State<CategoryItem>
+class _CategoryItemState extends ConsumerState<CategoryItem>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
@@ -75,6 +77,7 @@ class _CategoryItemState extends State<CategoryItem>
 
   @override
   Widget build(BuildContext context) {
+    final themeState = ref.watch(themeProvider);
     return AnimatedBuilder(
       animation: _scaleAnimation,
       builder: (context, child) {
@@ -94,14 +97,9 @@ class _CategoryItemState extends State<CategoryItem>
                   height: widget.size,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color:
-                        widget.category.backgroundColor ??
-                        const Color.fromRGBO(
-                          67,
-                          39,
-                          32,
-                          1,
-                        ), // Color marrón como en la imagen
+                    color: themeState
+                        .themeType
+                        .accentColor, // Color marrón como en la imagen
                     boxShadow: [
                       // Sombra exterior
                       BoxShadow(
