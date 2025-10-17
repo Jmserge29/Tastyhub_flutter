@@ -25,11 +25,13 @@ import 'package:flutter_tastyhub/domain/usecases/auth/register_usecase.dart';
 import 'package:flutter_tastyhub/domain/usecases/auth/user_usecase.dart';
 import 'package:flutter_tastyhub/domain/usecases/categories/get_categories_usecase.dart';
 import 'package:flutter_tastyhub/domain/usecases/recipes/create_recipe_usecase.dart';
+import 'package:flutter_tastyhub/domain/usecases/recipes/delete_recipe_usecase.dart';
 import 'package:flutter_tastyhub/domain/usecases/recipes/get_recipe_by_id_usecase.dart';
 import 'package:flutter_tastyhub/domain/usecases/recipes/get_recipes_by_user_usecase.dart';
 import 'package:flutter_tastyhub/domain/usecases/recipes/get_recipes_usecase.dart';
 import 'package:flutter_tastyhub/domain/usecases/recipes/search_recipes_usecase.dart';
 import 'package:flutter_tastyhub/domain/usecases/recipes/toggle_likes_usecase.dart';
+import 'package:flutter_tastyhub/domain/usecases/recipes/update_recipe_usecase.dart';
 
 final firebaseAuthDataSourceProvider = Provider<FirebaseAuthDataSource>((ref) {
   return FirebaseAuthDataSourceImpl();
@@ -278,6 +280,30 @@ final userFollowersProvider = FutureProvider.family<List<User>, String>((
 ) async {
   final repository = ref.watch(userRepositoryProvider);
   return repository.getFollowers(userId);
+});
+
+// ========== USE CASES FALTANTES ==========
+
+// Use Case para eliminar receta
+final deleteRecipeUseCaseProvider = Provider<DeleteRecipeUseCase>((ref) {
+  final recipeRepository = ref.watch(recipeRepositoryProvider);
+  final storageRepository = ref.watch(storageRepositoryProvider);
+  return DeleteRecipeUseCase(recipeRepository, storageRepository);
+});
+
+// Use Case para actualizar receta
+final updateRecipeUseCaseProvider = Provider<UpdateRecipeUseCase>((ref) {
+  final recipeRepository = ref.watch(recipeRepositoryProvider);
+  final storageRepository = ref.watch(storageRepositoryProvider);
+  return UpdateRecipeUseCase(recipeRepository, storageRepository);
+});
+
+// Use Case para actualizar perfil de usuario
+final updateUserProfileUseCaseProvider = Provider<UpdateUserProfileUseCase>((
+  ref,
+) {
+  final authRepository = ref.watch(authRepositoryProvider);
+  return UpdateUserProfileUseCase(authRepository);
 });
 
 // Provider para obtener usuarios seguidos

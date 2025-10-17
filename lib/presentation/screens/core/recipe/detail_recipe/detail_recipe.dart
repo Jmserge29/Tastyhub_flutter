@@ -5,6 +5,7 @@ import 'package:flutter_tastyhub/config/providers/theme/theme_provider.dart';
 import 'package:flutter_tastyhub/domain/entities/receipe.dart';
 import 'package:flutter_tastyhub/domain/entities/user.dart';
 import 'package:flutter_tastyhub/presentation/screens/core/profile/user_profile_screen.dart';
+import 'package:flutter_tastyhub/presentation/screens/core/recipe/edit_recipe/edit_recipe_screen.dart';
 import 'package:flutter_tastyhub/shared/types/app_theme_type.dart';
 
 class DetailRecipeScreen extends ConsumerStatefulWidget {
@@ -133,6 +134,55 @@ class _DetailRecipeScreenState extends ConsumerState<DetailRecipeScreen> {
     );
   }
 
+  Future<void> _showDeleteConfirmation(
+    Recipe recipe,
+    String currentUserId,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Eliminar Receta'),
+        content: const Text(
+          '¿Estás seguro de que deseas eliminar esta receta? Esta acción no se puede deshacer.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Eliminar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      try {
+        final deleteUseCase = ref.read(deleteRecipeUseCaseProvider);
+        await deleteUseCase(recipe.id, currentUserId);
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Receta eliminada exitosamente')),
+          );
+          Navigator.of(context).pop(); // Volver a la pantalla anterior
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error al eliminar: ${e.toString()}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final recipeAsync = ref.watch(_recipeDetailProvider(widget.recipeId));
@@ -216,6 +266,71 @@ class _DetailRecipeScreenState extends ConsumerState<DetailRecipeScreen> {
                       onPressed: () => Navigator.of(context).pop(),
                     ),
                   ),
+                ),
+                // NUEVO: Botones de editar y eliminar (solo si es el dueño)
+                currentUserAsync.when(
+                  data: (currentUser) {
+                    if (currentUser != null &&
+                        currentUser.id == recipe.userId) {
+                      return Positioned(
+                        top: 50,
+                        right: 20,
+                        child: Row(
+                          children: [
+                            // Botón Editar
+                            Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: IconButton(
+                                icon: const Icon(
+                                  Icons.edit,
+                                  color: Colors.blue,
+                                ),
+                                onPressed: () async {
+                                  final result = await Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          EditRecipeScreen(recipe: recipe),
+                                    ),
+                                  );
+                                  if (result == true) {
+                                    // Refrescar la receta después de editar
+                                    ref.invalidate(
+                                      _recipeDetailProvider(widget.recipeId),
+                                    );
+                                  }
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            // Botón Eliminar
+                            Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: IconButton(
+                                icon: const Icon(
+                                  Icons.delete,
+                                  color: Colors.red,
+                                ),
+                                onPressed: () => _showDeleteConfirmation(
+                                  recipe,
+                                  currentUser.id,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+                    return const SizedBox.shrink();
+                  },
+                  loading: () => const SizedBox.shrink(),
+                  error: (_, __) => const SizedBox.shrink(),
                 ),
               ],
             ),

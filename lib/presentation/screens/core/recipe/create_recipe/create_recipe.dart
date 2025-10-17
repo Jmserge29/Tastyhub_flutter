@@ -11,7 +11,7 @@ import 'package:flutter_tastyhub/presentation/widgets/form/custom_dropdown_form_
 import 'package:flutter_tastyhub/presentation/widgets/form/custom_input_form_field.dart';
 
 class CreateRecipeScreen extends ConsumerStatefulWidget {
-  const CreateRecipeScreen({Key? key}) : super(key: key);
+  const CreateRecipeScreen({super.key});
 
   @override
   ConsumerState<CreateRecipeScreen> createState() => _CreateRecipeScreenState();

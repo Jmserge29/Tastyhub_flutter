@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_tastyhub/config/providers/theme/theme_provider.dart';
-import 'package:flutter_tastyhub/presentation/screens/core/create_recipe/create_recipe.dart';
+import 'package:flutter_tastyhub/presentation/screens/core/recipe/create_recipe/create_recipe.dart';
 
 class ButtonCreateRecipe extends ConsumerWidget {
   const ButtonCreateRecipe({super.key});

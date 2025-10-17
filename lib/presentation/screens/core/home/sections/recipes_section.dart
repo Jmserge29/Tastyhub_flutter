@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_tastyhub/domain/entities/receipe.dart';
-import 'package:flutter_tastyhub/presentation/screens/core/detail_recipe/detail_recipe.dart';
+import 'package:flutter_tastyhub/presentation/screens/core/recipe/detail_recipe/detail_recipe.dart';
 import 'package:flutter_tastyhub/presentation/widgets/recipe/horizontal_scroll_recipe.dart';
 
 class RecipesSection extends StatefulWidget {
   const RecipesSection({
     super.key,
     required this.title,
-    required this.recipes, // Agregar lista de recetas
+    required this.recipes,
     this.onRecipeTap,
     this.onFavoriteToggle,
     this.onSeeAll,
